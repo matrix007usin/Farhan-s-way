@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#FFF8F1"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icons/icon-192.png"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Farhan's Way"><meta name="apple-mobile-web-app-status-bar-style" content="default"><script>window.FW_CONFIG={"url": "https://xspgihsmyyaeiqlmfule.supabase.co", "key": "sb_publishable_d6FEf0-Oua8Jdl_RR7NVmA_NI_pk7fz"};</script>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#FFF8F1"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icons/icon-192.png"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Farhan's Way"><meta name="apple-mobile-web-app-status-bar-style" content="default"><script>window.FW_CONFIG={"url": "https://xspgihsmyyaeiqlmfule.supabase.co", "key": "sb_publishable_d6FEf0-Oua8Jdl_RR7NVmA_NI_pk7fz", "alt": ["sb_publishable_d6FEf0-Oua8Jdl_RR7NVmA_NI_pk7Fz"]};</script>
 <meta name="claude:viewport-fit-sides" content="cover">
 <title>Farhan's Way</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1448,12 +1448,18 @@ setInterval(function(){
 var NET={tok:null,dirty:false,busy:false,t:null,fail:0,snap:null,since:0,pollT:null,off:false};
 function tokGet(){try{return localStorage.getItem(TOK_KEY)}catch(e){return null}}
 function tokSet(t){try{if(t)localStorage.setItem(TOK_KEY,t);else localStorage.removeItem(TOK_KEY)}catch(e){}}
-function api(fn,args,keep){
-  var body=JSON.stringify(args||{});
-  return fetch(String(CFG.url).replace(/\/+$/,'')+'/rest/v1/rpc/'+fn,{method:'POST',headers:{'apikey':CFG.key,'Content-Type':'application/json'},body:body,keepalive:!!keep&&body.length<60000}).then(function(r){
+var KEYS=[CFG&&CFG.key].concat((CFG&&CFG.alt)||[]),KI=0;
+try{var ki=parseInt(localStorage.getItem('fw_ki'),10);if(ki>=0&&ki<KEYS.length)KI=ki}catch(e){}
+function api(fn,args,keep,tries){
+  var body=JSON.stringify(args||{});tries=tries||0;
+  return fetch(String(CFG.url).replace(/\/+$/,'')+'/rest/v1/rpc/'+fn,{method:'POST',headers:{'apikey':KEYS[KI],'Content-Type':'application/json'},body:body,keepalive:!!keep&&body.length<60000}).then(function(r){
     return r.text().then(function(t){
       var j=null;try{j=JSON.parse(t)}catch(e){}
-      if(!r.ok){var e=new Error((j&&j.message)||('http '+r.status));e.code=(j&&j.message)||'';e.http=r.status;throw e}
+      if(!r.ok){
+        if(r.status===401&&tries<KEYS.length-1){KI=(KI+1)%KEYS.length;return api(fn,args,keep,tries+1)}
+        var e=new Error((j&&(j.message||j.msg))||('http '+r.status));e.code=(j&&j.message)||'';e.http=r.status;throw e;
+      }
+      try{localStorage.setItem('fw_ki',String(KI))}catch(e){}
       return j;
     });
   });
