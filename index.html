@@ -1543,7 +1543,7 @@ function cloudBegin(d,toastMsg){
   startPolling();cacheWrite();
 }
 function cloudLoad(){return api('fw_load',{p_token:NET.tok,p_days:21})}
-function netMsg(e){return e&&e.http?'Something went wrong. Please try again.':'No internet connection. Check your signal and try again.'}
+function netMsg(e){return e&&e.http?'Server said no ('+e.http+'): '+String(e.message||'').slice(0,90):'Cannot reach the server. Check your signal and try again.'}
 function cloudLogin(id,pw,errId){
   showErr(errId,'Signing in…');
   api('fw_login',{p_id:id,p_pw:pw,p_role:S.role}).then(function(r){
