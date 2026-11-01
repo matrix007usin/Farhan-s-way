@@ -218,32 +218,37 @@
   .wk-head .t{flex:1;min-width:0}
   .wk-head h1{font-size:17px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .wk-head .el{font-size:12px;color:var(--muted);font-weight:500;font-variant-numeric:tabular-nums}
-  .exc{margin-top:20px}
+  .exc{margin-top:12px;padding:14px 14px 12px}
   .exc-h{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
-  .exc-h b{font-family:var(--font-display);font-size:15.5px;font-weight:700}
-  .exc-h .sb{font-size:12px;color:var(--muted);margin-top:3px}
+  .exc-h b{font-family:var(--font-display);font-size:14px;font-weight:700}
+  .exc-h .sb{font-size:11px;color:var(--muted);margin-top:1px}
   .last{display:inline-block;margin-top:10px;font-size:11.5px;color:var(--orange-i);background:var(--orange-t);border-radius:8px;padding:3px 10px;font-weight:500}
-  .sets{margin-top:20px}
-  .setrow{display:grid;grid-template-columns:28px minmax(0,1fr) 62px 62px 46px;gap:10px;align-items:center;margin-top:0}
-  .sethead{display:grid;grid-template-columns:28px minmax(0,1fr) 62px 62px 46px;gap:10px;font-size:10.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;text-align:center;align-items:center;padding-bottom:4px}
-  .sethead svg{width:15px;height:15px;justify-self:center}
-  .setrow .num{height:48px;border-radius:13px;font-size:17px}
-  .setrow .tick{width:46px;height:46px;border-radius:13px}
-  .prev{border:0;background:none;font:inherit;font-size:12.5px;font-weight:500;color:var(--muted);text-align:center;height:46px;padding:0;min-width:0;white-space:nowrap;font-variant-numeric:tabular-nums;border-radius:10px}
+  .sets{margin-top:10px}
+  .setrow{display:grid;grid-template-columns:24px minmax(0,1fr) 54px 54px 38px;gap:6px;align-items:center;margin-top:0}
+  .sethead{display:grid;grid-template-columns:24px minmax(0,1fr) 54px 54px 38px;gap:6px;font-size:9.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;text-align:center;align-items:center;padding-bottom:2px}
+  .sethead svg{width:13px;height:13px;justify-self:center}
+  .setrow .num{height:38px;border-radius:10px;font-size:15px}
+  .setrow .tick{width:38px;height:38px;border-radius:10px}
+  .setrow .tick svg{width:17px;height:17px}
+  .prev{border:0;background:none;font:inherit;font-size:11.5px;font-weight:500;color:var(--muted);text-align:center;height:38px;padding:0;min-width:0;white-space:nowrap;display:grid;place-items:center;font-variant-numeric:tabular-nums;border-radius:10px}
   button.prev:active{background:var(--soft)}
   .prev.none{opacity:.5}
   .exc-r{display:flex;align-items:center;gap:4px;flex:none}
-  .rchip{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 12px;border:0;border-radius:12px;background:var(--soft);color:var(--violet);font-weight:700;font-size:13px;font-variant-numeric:tabular-nums}
-  .rchip svg{width:16px;height:16px}
+  .exc .addrow{margin-top:6px}
+  .exc .addrow .btn{min-height:34px;height:34px;font-size:13px}
+  .exc .hint{margin-top:8px;font-size:11px}
+  .exc-r .icon{width:30px!important;height:30px!important}
+  .rchip{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 10px;border:0;border-radius:10px;background:var(--soft);color:var(--violet);font-weight:700;font-size:12px;font-variant-numeric:tabular-nums}
+  .rchip svg{width:14px;height:14px}
   .rgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:18px}
   .rgrid button{height:46px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);font-weight:600;font-size:14px;color:var(--ink)}
   .rgrid button.on{background:var(--grad);border-color:transparent;color:#fff}
-  .setrow .sn{width:26px;height:26px;border-radius:50%;background:var(--soft);display:grid;place-items:center;font-weight:600;font-size:12px}
+  .setrow .sn{width:22px;height:22px;border-radius:50%;background:var(--soft);display:grid;place-items:center;font-weight:600;font-size:12px}
   .tick{width:42px;height:42px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);display:grid;place-items:center;color:transparent}
   .tick svg{width:20px;height:20px}
   .tick.on{background:var(--good);border-color:var(--good);color:#fff}
   /* swipe a set left or right to remove it */
-  .swipe{position:relative;margin-top:10px;padding:3px 0;border-radius:14px;overflow:hidden}
+  .swipe{position:relative;margin-top:4px;padding:2px 0;border-radius:14px;overflow:hidden}
   .swipe-bg{position:absolute;inset:3px 0;border-radius:12px;background:var(--bad-t);color:var(--bad-i);display:flex;align-items:center;justify-content:space-between;padding:0 18px;font-weight:600;font-size:12.5px;opacity:0;transition:opacity .12s}
   .swipe-bg svg{width:20px;height:20px}
   .swipe.moving .swipe-bg{opacity:1}
