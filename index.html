@@ -223,15 +223,27 @@
   .exc-h b{font-family:var(--font-display);font-size:15.5px;font-weight:700}
   .exc-h .sb{font-size:12px;color:var(--muted);margin-top:3px}
   .last{display:inline-block;margin-top:10px;font-size:11.5px;color:var(--orange-i);background:var(--orange-t);border-radius:8px;padding:3px 10px;font-weight:500}
-  .sets{margin-top:16px}
-  .setrow{display:grid;grid-template-columns:28px 1fr 1fr 58px 42px;gap:8px;align-items:center;margin-top:10px}
-  .sethead{display:grid;grid-template-columns:28px 1fr 1fr 58px 42px;gap:8px;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;text-align:center}
+  .sets{margin-top:20px}
+  .setrow{display:grid;grid-template-columns:28px minmax(0,1fr) 62px 62px 46px;gap:10px;align-items:center;margin-top:0}
+  .sethead{display:grid;grid-template-columns:28px minmax(0,1fr) 62px 62px 46px;gap:10px;font-size:10.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;text-align:center;align-items:center;padding-bottom:4px}
+  .sethead svg{width:15px;height:15px;justify-self:center}
+  .setrow .num{height:48px;border-radius:13px;font-size:17px}
+  .setrow .tick{width:46px;height:46px;border-radius:13px}
+  .prev{border:0;background:none;font:inherit;font-size:12.5px;font-weight:500;color:var(--muted);text-align:center;height:46px;padding:0;min-width:0;white-space:nowrap;font-variant-numeric:tabular-nums;border-radius:10px}
+  button.prev:active{background:var(--soft)}
+  .prev.none{opacity:.5}
+  .exc-r{display:flex;align-items:center;gap:4px;flex:none}
+  .rchip{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 12px;border:0;border-radius:12px;background:var(--soft);color:var(--violet);font-weight:700;font-size:13px;font-variant-numeric:tabular-nums}
+  .rchip svg{width:16px;height:16px}
+  .rgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:18px}
+  .rgrid button{height:46px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);font-weight:600;font-size:14px;color:var(--ink)}
+  .rgrid button.on{background:var(--grad);border-color:transparent;color:#fff}
   .setrow .sn{width:26px;height:26px;border-radius:50%;background:var(--soft);display:grid;place-items:center;font-weight:600;font-size:12px}
   .tick{width:42px;height:42px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);display:grid;place-items:center;color:transparent}
   .tick svg{width:20px;height:20px}
   .tick.on{background:var(--good);border-color:var(--good);color:#fff}
   /* swipe a set left or right to remove it */
-  .swipe{position:relative;margin-top:6px;padding:3px 0;border-radius:14px;overflow:hidden}
+  .swipe{position:relative;margin-top:10px;padding:3px 0;border-radius:14px;overflow:hidden}
   .swipe-bg{position:absolute;inset:3px 0;border-radius:12px;background:var(--bad-t);color:var(--bad-i);display:flex;align-items:center;justify-content:space-between;padding:0 18px;font-weight:600;font-size:12.5px;opacity:0;transition:opacity .12s}
   .swipe-bg svg{width:20px;height:20px}
   .swipe.moving .swipe-bg{opacity:1}
@@ -623,6 +635,9 @@ function nextDay(c){var p=progBy(c.program);if(!p)return null;var tw=pWeeks(p),w
   var n=DB.logs.filter(function(l){return l.cid===c.id&&l.pid===p.id&&l.source==='program'&&(!tw||(l.wk||1)===wk)}).length;
   return {p:p,i:n%days.length,d:days[n%days.length],n:days.length,done:n,wk:wk,tw:tw,pa:phaseAt(p,wk)}}
 function lastFor(cid,name){var ls=logsOf(cid);for(var i=0;i<ls.length;i++){for(var j=0;j<ls[i].ex.length;j++){var e=ls[i].ex[j];if(e.n===name){var ds=e.sets.filter(function(s){return s.done!==false});if(ds.length)return ds[ds.length-1]}}}return null}
+// Sets of the most recent saved workout that included this exercise (shown in the "Previous" column).
+function prevSets(cid,name){var ls=logsOf(cid);for(var i=0;i<ls.length;i++){for(var j=0;j<ls[i].ex.length;j++){var e=ls[i].ex[j];if(e.n===name){var ds=e.sets.filter(function(s){return s.done!==false});if(ds.length)return ds}}}return []}
+function restOfEx(e){var l=e.sets.filter(function(s){return !s.done})[0]||e.sets[0];return l?(+l.rest||0):0}
 function weekCounts(){var out=[];for(var i=6;i>=0;i--){var k=keyAgo(i);out.push({k:k,n:DB.logs.filter(function(l){return l.date===k}).length,t:i===0,dow:new Date(new Date().setDate(new Date().getDate()-i)).toLocaleDateString('en-IN',{weekday:'short'})})}return out}
 function weekDays(){var out=[],d=new Date();var dow=(d.getDay()+6)%7;for(var i=0;i<7;i++){var x=new Date();x.setDate(x.getDate()-dow+i);out.push({k:keyOf(x),lbl:['M','T','W','T','F','S','S'][i],t:keyOf(x)===todayKey()})}return out}
 
@@ -815,10 +830,10 @@ function vWorkout(){
   return '<div class="wk-head"><button class="icon" data-act="askLeave" aria-label="Leave workout">'+I.back+'</button><div class="t"><h1>'+esc(d.name)+'</h1><div class="el">'+(isPast(d)?'Past workout':'Elapsed <span id="elapsed">'+mmss((Date.now()-d.startedAt)/1000)+'</span><span id="wlock">'+(WL.s?' · Screen stays on':'')+'</span>')+'</div></div><button class="btn sm" data-act="finish">Finish</button></div>'+
   '<div class="card" style="margin-top:12px;padding:14px 18px"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px"><div style="min-width:0"><div class="eyebrow">Workout date</div><div style="font-weight:600;margin-top:2px;white-space:nowrap">'+(isPast(d)?fmtDay(d.date):'Today')+'</div></div><div class="field" style="height:44px;width:172px;flex:none"><input type="date" id="wdate" data-act-change="wDate" value="'+(d.date||todayKey())+'" min="'+minKey()+'" max="'+todayKey()+'" aria-label="Workout date" style="padding:0 12px"></div></div>'+(isPast(d)?'<p class="muted" style="font-size:12px;margin-top:10px">Saved on this date. Rest timer is off for past workouts.</p>':'')+'</div>'+
   d.ex.map(function(e,ei){
-    var lf=lastFor(u.id,e.ex);
-    return '<div class="card exc" data-rord="dr.ex"><div class="exc-h"><div style="min-width:0"><b>'+esc(e.ex)+'</b><div class="sb">'+esc(e.g||'')+(e.tgt?' · Target '+esc(e.tgt):'')+(e.rr?' · Rest '+esc(fmtRest(e.rr)):'')+'</div>'+(lf?'<span class="last">Last time: '+kg(+lf.kg||0)+' kg × '+lf.reps+'</span>':'')+'</div><button class="icon" style="width:36px;height:36px;border-radius:12px;background:transparent;color:var(--muted)" data-act="exDelWk" data-arg="'+ei+'" aria-label="Remove exercise">'+I.x+'</button></div>'+
-    '<div class="sets"><div class="sethead"><span>Set</span><span>kg</span><span>Reps</span><span>Rest s</span><span>Done</span></div>'+
-    e.sets.map(function(s,si){var b='dr.ex.'+ei+'.sets.'+si;return '<div class="swipe"><div class="swipe-bg" aria-hidden="true">'+I.trash+'<span>Remove set</span>'+I.trash+'</div><div class="setrow" data-ei="'+ei+'" data-si="'+si+'"><div class="sn">'+(si+1)+'</div><input class="num'+(s.done?' done':'')+'" inputmode="decimal" data-b="'+b+'.kg" data-n="f" value="'+esc(s.kg)+'" aria-label="Weight in kg"><input class="num'+(s.done?' done':'')+'" inputmode="numeric" data-b="'+b+'.reps" data-n="i" value="'+esc(s.reps)+'" aria-label="Reps"><input class="num" inputmode="numeric" data-b="'+b+'.rest" data-n="i" value="'+esc(s.rest)+'" aria-label="Rest in seconds"><button class="tick'+(s.done?' on':'')+'" data-act="tick" data-arg="'+ei+'|'+si+'" aria-label="Mark set done">'+I.check+'</button></div></div>'}).join('')+(e.sets.length?'':'<p class="muted" style="margin:14px 2px 0;font-size:12.5px">No sets left. Add one below.</p>')+'</div>'+
+    var pv=prevSets(u.id,e.ex),rs=restOfEx(e);
+    return '<div class="card exc" data-rord="dr.ex"><div class="exc-h"><div style="min-width:0"><b>'+esc(e.ex)+'</b><div class="sb">'+esc(e.g||'')+(e.tgt?' · Target '+esc(e.tgt):'')+'</div></div><div class="exc-r"><button class="rchip" data-act="restEdit" data-arg="'+ei+'" aria-label="Rest timer for this exercise">'+I.clock+(rs?mmss(rs):'Off')+'</button><button class="icon" style="width:36px;height:36px;border-radius:12px;background:transparent;color:var(--muted)" data-act="exDelWk" data-arg="'+ei+'" aria-label="Remove exercise">'+I.x+'</button></div></div>'+
+    '<div class="sets"><div class="sethead"><span>Set</span><span>Previous</span><span>kg</span><span>Reps</span><span>'+I.check+'</span></div>'+
+    e.sets.map(function(s,si){var b='dr.ex.'+ei+'.sets.'+si,pp=pv[si];return '<div class="swipe"><div class="swipe-bg" aria-hidden="true">'+I.trash+'<span>Remove set</span>'+I.trash+'</div><div class="setrow" data-ei="'+ei+'" data-si="'+si+'"><div class="sn">'+(si+1)+'</div>'+(pp?'<button class="prev" data-act="usePrev" data-arg="'+ei+'|'+si+'" aria-label="Use previous: '+kg(+pp.kg||0)+' kg times '+pp.reps+'">'+kg(+pp.kg||0)+'×'+esc(pp.reps)+'</button>':'<span class="prev none">–</span>')+'<input class="num'+(s.done?' done':'')+'" inputmode="decimal" data-b="'+b+'.kg" data-n="f" value="'+esc(s.kg)+'" aria-label="Weight in kg"><input class="num'+(s.done?' done':'')+'" inputmode="numeric" data-b="'+b+'.reps" data-n="i" value="'+esc(s.reps)+'" aria-label="Reps"><button class="tick'+(s.done?' on':'')+'" data-act="tick" data-arg="'+ei+'|'+si+'" aria-label="Mark set done">'+I.check+'</button></div></div>'}).join('')+(e.sets.length?'':'<p class="muted" style="margin:14px 2px 0;font-size:12.5px">No sets left. Add one below.</p>')+'</div>'+
     '<div class="addrow"><button class="btn sm soft" style="flex:1" data-act="addSet" data-arg="'+ei+'">'+I.plus+'Add set</button>'+'</div>'+(ei===0&&(e.sets.length||d.ex.length>1)?'<p class="hint">'+(e.sets.length?'Swipe a set left or right to remove it.':'')+(e.sets.length&&d.ex.length>1?'<br>':'')+(d.ex.length>1?'Hold an exercise name, then slide to reorder.':'')+'</p>':'')+'</div>'}).join('')+
   '<button class="btn ghost block" style="margin-top:22px" data-act="pick" data-arg="dr.ex">'+I.plus+'Add exercise</button>'+
   '<label class="lbl" for="wnote">Note for this workout</label><textarea id="wnote" class="note" data-b="dr.note" placeholder="How did it feel? Anything to tell your trainer?">'+esc(d.note||'')+'</textarea>'+
@@ -1025,6 +1040,12 @@ function drawSheet(){
     tp2.map(function(t){return '<button class="pick" data-act="pastStart" data-arg="tpl:'+t.id+'">'+esc(t.name)+'<span>My template</span></button>'}).join('')+
     '<button class="pick" data-act="pastStart" data-arg="free">Empty workout<span>Add exercises</span></button>'+
     '<div class="acts"><button class="btn ghost" data-act="closeSheet">Cancel</button></div>';
+  } else if(s.type==='restedit'){
+    var re=S.dr.ex[s.ei],cur=restOfEx(re);
+    inner='<h2>Rest timer</h2><p class="body">'+esc(re.ex)+'. This applies to every set of this exercise.'+(re.rr?' Your trainer suggests '+esc(fmtRest(re.rr))+'.':'')+'</p><div class="rgrid">'+
+    [[0,'Off'],[30,'30 s'],[45,'45 s'],[60,'1:00'],[75,'1:15'],[90,'1:30'],[120,'2:00'],[180,'3:00']].map(function(o){return '<button class="'+(cur===o[0]?'on':'')+'" data-act="restSet" data-arg="'+s.ei+'|'+o[0]+'">'+o[1]+'</button>'}).join('')+'</div>'+
+    '<label class="lbl" for="rcust">Other time (seconds)</label><div class="field"><input id="rcust" inputmode="numeric" autocomplete="off" placeholder="e.g. 100"></div>'+
+    '<div class="acts"><button class="btn ghost" data-act="closeSheet">Cancel</button><button class="btn" data-act="restCustom" data-arg="'+s.ei+'">Set</button></div>';
   } else if(s.type==='finish'){
     var d=S.dr,done=0,vol=0;d.ex.forEach(function(e){e.sets.forEach(function(x){if(x.done){done++;vol+=(+x.kg||0)*(+x.reps||0)}})});
     inner='<h2>'+(isPast(d)?'Save past workout?':'Finish workout?')+'</h2><div class="kv"><div class="stat" style="padding:14px"><div class="l">Sets</div><div class="v" style="font-size:20px">'+done+'</div></div><div class="stat" style="padding:14px"><div class="l">Volume</div><div class="v" style="font-size:20px">'+nf(vol)+'</div><div class="s">kg</div></div>'+(isPast(d)?'<div class="stat" style="padding:14px"><div class="l">Date</div><div class="v" style="font-size:20px">'+new Date(d.date.replace(/-/g,'/')).toLocaleDateString('en-IN',{day:'numeric',month:'short'})+'</div><div class="s">'+new Date(d.date.replace(/-/g,'/')).toLocaleDateString('en-IN',{weekday:'short'})+'</div></div>':'<div class="stat" style="padding:14px"><div class="l">Time</div><div class="v" style="font-size:20px">'+Math.max(1,Math.round((Date.now()-d.startedAt)/60000))+'</div><div class="s">min</div></div>')+'</div>'+
@@ -1166,6 +1187,10 @@ var A={
       if(!isPast(S.dr))DB.live[S.user.id]={name:S.dr.name,startedAt:S.dr.startedAt,updatedAt:Date.now(),last:e.ex+' · '+kg(+s.kg||0)+' kg × '+s.reps};
     } else {s.done=false}
     persistDraft();render()},
+  usePrev:function(a){var p=a.split('|'),e=S.dr.ex[+p[0]],s=e&&e.sets[+p[1]],pp=e&&prevSets(S.user.id,e.ex)[+p[1]];if(!s||!pp||s.done)return;s.kg=+pp.kg||0;s.reps=pp.reps;persistDraft();render()},
+  restEdit:function(a){openSheet({type:'restedit',ei:+a})},
+  restSet:function(a){var p=a.split('|'),e=S.dr.ex[+p[0]];if(!e)return;var v=Math.max(0,Math.min(900,parseInt(p[1],10)||0));e.sets.forEach(function(s){s.rest=v});persistDraft();closeSheet();render()},
+  restCustom:function(a){var e=S.dr.ex[+a],i=$('#rcust'),v=parseInt(i&&i.value,10);if(!e)return;if(isNaN(v)||v<0||v>900){toast('Enter seconds between 0 and 900');return}e.sets.forEach(function(s){s.rest=v});persistDraft();closeSheet();render()},
   restAdd:function(a){
     if(!S.rest)return;
     var d=(parseInt(a,10)||15);S.rest.end+=d*1000;S.rest.total+=d;
