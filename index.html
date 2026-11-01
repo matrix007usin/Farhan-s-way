@@ -285,6 +285,58 @@
   .rprog i{display:block;height:100%;background:var(--grad);width:100%}
   .restbar button{border:0;border-radius:12px;height:40px;min-width:58px;padding:0 12px;background:#3a3158;color:#fff;font-weight:600;font-size:13px}
 
+  /* timer tab */
+  .tgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:22px}
+  .ttile{position:relative;aspect-ratio:1/1;border-radius:30px;padding:18px;display:flex;flex-direction:column;justify-content:flex-end;text-align:left;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;min-width:0;overflow:hidden;font:inherit}
+  .ttile .tn{font-family:var(--font-display);font-weight:700;font-size:16px;line-height:1.2}
+  .ttile .ts{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.4}
+  .ttile .tt{position:absolute;top:16px;left:18px;font-family:var(--font-display);font-weight:800;font-size:26px;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+  .ttile .tp{position:absolute;top:14px;right:14px;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:var(--soft);color:var(--violet)}
+  .ttile .tp svg{width:18px;height:18px}
+  .ttile.hot{background:var(--grad);border-color:transparent;color:#fff;box-shadow:0 18px 34px -16px rgba(255,46,126,.55)}
+  .ttile.hot .ts{color:rgba(255,255,255,.85)}.ttile.hot .tp{background:rgba(255,255,255,.22);color:#fff}
+  .ttile.add{border-style:dashed;border-color:#D9C8F0;background:var(--soft);align-items:center;justify-content:center;text-align:center;gap:6px}
+  .ttile.add .plus{width:52px;height:52px;border-radius:50%;background:var(--surface);color:var(--violet);display:grid;place-items:center;box-shadow:0 8px 18px -10px rgba(124,58,237,.5)}
+  .ttile.add .plus svg{width:24px;height:24px}
+  .ttile .tedit{position:absolute;top:14px;right:58px;width:38px;height:38px;border:0;border-radius:50%;background:transparent;color:var(--muted);display:grid;place-items:center}
+  .ttile .tedit svg{width:17px;height:17px}
+  .tsum{margin-top:14px;padding:14px 16px;border-radius:18px;background:var(--grad);color:#fff;text-align:center;font-weight:700;font-size:14px;font-variant-numeric:tabular-nums}
+  .trow{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px;padding:13px 0;border-bottom:1px solid var(--line)}
+  .trow:last-of-type{border-bottom:0}
+  .trow .tlab{display:flex;align-items:center;gap:10px;font-weight:600;font-size:14px;min-width:0}
+  .trow .tlab small{display:block;font-weight:500;font-size:11.5px;color:var(--muted)}
+  .tdot{width:12px;height:12px;border-radius:50%;flex:none}
+  .tctl{display:flex;align-items:center;gap:8px}
+  .tstep{width:38px;height:38px;border:0;border-radius:50%;background:var(--soft);color:var(--violet);font-size:22px;font-weight:700;line-height:1;display:grid;place-items:center}
+  .tstep:active{background:var(--violet);color:#fff}
+  .tval{width:64px;height:38px;border:1.5px solid var(--line);border-radius:11px;text-align:center;font-weight:700;font-size:16px;font-variant-numeric:tabular-nums;background:var(--surface);padding:0 2px}
+  .tval:focus-visible{outline:0;border-color:var(--pink);box-shadow:0 0 0 3px rgba(255,46,126,.14)}
+  .trun{position:fixed;inset:0;z-index:50;color:#fff;display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top,0px) + 14px) 22px calc(env(safe-area-inset-bottom,0px) + 22px);transition:background .25s}
+  .trun.p-lead,.trun.p-pre{background:linear-gradient(160deg,#7C3AED,#4C1D95)}
+  .trun.p-work{background:linear-gradient(160deg,#FF7A00,#FF2E7E)}
+  .trun.p-rest,.trun.p-rs{background:linear-gradient(160deg,#16A34A,#0E7490)}
+  .trun.p-cool{background:linear-gradient(160deg,#2563EB,#7C3AED)}
+  .trun.p-done{background:linear-gradient(160deg,#FF8A00,#FF2E7E 55%,#7C3AED)}
+  .trun.pause{filter:saturate(.55) brightness(.9)}
+  .trun .tr-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .trun .tr-top b{font-family:var(--font-display);font-size:15px;font-weight:700;opacity:.95;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .trun .tr-x{width:42px;height:42px;border:0;border-radius:50%;background:rgba(255,255,255,.2);color:#fff;display:grid;place-items:center;flex:none}
+  .trun .tr-mid{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:6px}
+  .trun .tr-ph{font-size:15px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;opacity:.92}
+  .trun .tr-big{font-family:var(--font-display);font-weight:800;font-size:104px;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.04em}
+  .trun .tr-chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:8px}
+  .trun .tr-chips span{background:rgba(255,255,255,.2);border-radius:99px;padding:6px 14px;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
+  .trun .tr-bar{height:8px;border-radius:99px;background:rgba(255,255,255,.25);overflow:hidden;margin:6px 0 14px}
+  .trun .tr-bar i{display:block;height:100%;width:100%;background:#fff;border-radius:99px}
+  .trun .tr-tot{text-align:center;font-size:13px;font-weight:600;opacity:.9;margin-bottom:18px;font-variant-numeric:tabular-nums}
+  .trun .tr-btns{display:flex;align-items:center;justify-content:center;gap:22px}
+  .trun .tr-btns button{border:0;color:#fff;background:rgba(255,255,255,.2);width:58px;height:58px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:12px}
+  .trun .tr-btns button.main{width:84px;height:84px;background:#fff;color:#1B1530;font-size:14px}
+  .trun .tr-btns svg{width:24px;height:24px}
+  .trun .tr-btns .main svg{width:32px;height:32px}
+  .trun .tr-btns.two button{width:auto;height:54px;border-radius:18px;padding:0 26px;font-size:15px}
+  .trun .tr-btns.two button.main{background:#fff;width:auto;height:54px}
+
   /* history */
   details.log{border-top:1px solid var(--line);padding:17px 0}
   .list > details.log:first-child{border-top:0}
@@ -346,7 +398,7 @@
   /* tab bar */
   #tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom,0px);background:var(--surface);border-top:1px solid var(--line)}
   #tabs:empty{display:none}
-  #tabs nav{display:grid;grid-template-columns:repeat(4,1fr);width:100%;max-width:480px;padding:10px max(12px,env(safe-area-inset-right,0px)) 10px max(12px,env(safe-area-inset-left,0px))}
+  #tabs nav{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;width:100%;max-width:480px;padding:10px max(12px,env(safe-area-inset-right,0px)) 10px max(12px,env(safe-area-inset-left,0px))}
   #tabs button{border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:5px;padding:6px 0;font-size:11px;font-weight:600;color:var(--muted)}
   #tabs button svg{width:22px;height:22px}
   #tabs button.on{color:var(--orange)}
@@ -434,6 +486,12 @@ var I={
   pause:ic('<path d="M8 5v14M16 5v14"/>',3),
   layers:ic('<path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/>'),
   chev:ic('<path d="M9 5l7 7-7 7"/>',2.4),
+  timer:ic('<circle cx="12" cy="13.5" r="7.5"/><path d="M12 9.5v4l2.5 2M9.5 2.5h5M12 2.5v3.5"/>'),
+  pause:ic('<path d="M8 5v14M16 5v14"/>',3),
+  playf:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.2v13.6a1 1 0 0 0 1.5.86l11-6.8a1 1 0 0 0 0-1.72l-11-6.8A1 1 0 0 0 8 5.2z"/></svg>',
+  skipn:ic('<path d="M5 5l9 7-9 7zM19 5v14"/>'),
+  skipb:ic('<path d="M19 5l-9 7 9 7zM5 5v14"/>'),
+  pen:ic('<path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4"/>'),
   chevd:ic('<path d="M6 9l6 6 6-6"/>',2.4),
   chevu:ic('<path d="M6 15l6-6 6 6"/>',2.4)
 };
@@ -1002,8 +1060,8 @@ function accountHtml(u){
 }
 
 /* ---------- render ---------- */
-var ADMIN_TABS=[['home','Home',I.home],['clients','Clients',I.users],['programs','Programs',I.clip],['settings','Settings',I.gear]];
-var CLIENT_TABS=[['profile','Profile',I.user],['workout','Workout',I.dumb],['templates','Templates',I.layers],['history','History',I.clock]];
+var ADMIN_TABS=[['home','Home',I.home],['clients','Clients',I.users],['programs','Programs',I.clip],['timer','Timer',I.timer],['settings','Settings',I.gear]];
+var CLIENT_TABS=[['profile','Profile',I.user],['workout','Workout',I.dumb],['templates','Templates',I.layers],['history','History',I.clock],['timer','Timer',I.timer]];
 function tabsHtml(list){return '<nav>'+list.map(function(t){return '<button data-act="tab" data-arg="'+t[0]+'" class="'+(S.tab===t[0]?'on':'')+'" aria-label="'+t[1]+'">'+t[2]+'<span>'+t[1]+'</span></button>'}).join('')+'</nav>'}
 function render(){
   var html='',tabs='',key;
@@ -1011,13 +1069,13 @@ function render(){
   if(!u){html=S.loading?'<div class="login"><div class="logo">'+DUMB_LOGO+'</div><h1 class="brand">Farhan\'s <span class="grad-text">Way</span></h1><p class="tag">Loading…</p></div>':S.stage==='force'?vForce():vLogin();key=S.loading?'loading':S.stage||'login'}
   else if(u.role==='admin'){
     var sn=S.sub&&S.sub.n;
-    if(sn==='client'){html=vClient()}else if(sn==='add'){html=vAddClient()}else if(sn==='prog'){html=vProgEdit()}
-    else{html=({home:vAdminHome,clients:vClients,programs:vPrograms,settings:vSettings})[S.tab]();tabs=tabsHtml(ADMIN_TABS)}
+    if(sn==='client'){html=vClient()}else if(sn==='add'){html=vAddClient()}else if(sn==='prog'){html=vProgEdit()}else if(sn==='tmedit'){html=vTmEdit()}else if(sn==='tmrun'){html=vTmRun()}
+    else{html=({home:vAdminHome,clients:vClients,programs:vPrograms,timer:vTimer,settings:vSettings})[S.tab]();tabs=tabsHtml(ADMIN_TABS)}
     key='a:'+S.tab+':'+(sn||'')+(S.sub&&S.sub.id||'');
   } else {
     var cn=S.sub&&S.sub.n;
-    if(cn==='workout'){html=vWorkout()}else if(cn==='tpl'){html=vTplEdit()}
-    else{html=({profile:vProfile,workout:vWorkoutTab,templates:vTemplates,history:vHistory})[S.tab]();tabs=tabsHtml(CLIENT_TABS)}
+    if(cn==='workout'){html=vWorkout()}else if(cn==='tpl'){html=vTplEdit()}else if(cn==='tmedit'){html=vTmEdit()}else if(cn==='tmrun'){html=vTmRun()}
+    else{html=({profile:vProfile,workout:vWorkoutTab,templates:vTemplates,history:vHistory,timer:vTimer})[S.tab]();tabs=tabsHtml(CLIENT_TABS)}
     key='c:'+S.tab+':'+(cn||'');
   }
   var y=window.scrollY,same=key===S.vkey;S.vkey=key;
@@ -1115,7 +1173,7 @@ var A={
   eye:function(a,el){var i=$('#pwd');var show=i.type==='password';i.type=show?'text':'password';el.innerHTML=show?I.eyeoff:I.eye},
   tab:function(a){S.tab=a;S.sub=null;render()},
   back:function(){S.sub=null;render()},
-  logout:function(){if(CLOUD){NET.dirty=NET.dirty||!!NET.snap;flush().then(function(){cloudLogout()});return}setSession(null);S.user=null;S.sub=null;S.dr=null;S.rest=null;S.tab='home';S.stage=null;render()},
+  logout:function(){S.tr=null;if(CLOUD){NET.dirty=NET.dirty||!!NET.snap;flush().then(function(){cloudLogout()});return}setSession(null);S.user=null;S.sub=null;S.dr=null;S.rest=null;S.tab='home';S.stage=null;render()},
   filter:function(a){S.filter=a;render()},
   goFilter:function(a){S.filter=a;S.q='';S.tab='clients';S.sub=null;render()},
   client:function(a){S.sub={n:'client',id:a};S.tab='clients';render();
@@ -1326,6 +1384,7 @@ document.addEventListener('change',function(ev){
   var el=ev.target.closest('[data-act-change]');if(!el)return;
   var act=el.getAttribute('data-act-change');
   if(act==='setProg'){var c=userBy(el.getAttribute('data-arg'));if(c.program!==el.value){c.program=el.value;c.week=1}save();toast(el.value?'Program assigned':'Program removed');render()}
+  if(act==='tmClamp'&&S.tm){var f=el.getAttribute('data-arg');S.tm[f]=tmClampVal(f,el.value);el.value=S.tm[f];tmSum()}
   if(act==='asgProg'){S.sheet.pid=el.value;drawSheet()}
   if(act==='pastDate'){if(validKey(el.value))S.sheet.date=el.value;else{toast('Pick a date up to today');el.value=S.sheet.date}}
   if(act==='wDate'&&S.dr){
@@ -1340,7 +1399,7 @@ document.addEventListener('input',function(ev){
   if(b){var v=el.value,n=el.getAttribute('data-n');
     if(n==='i')v=v===''?'':Math.max(0,parseInt(v,10)||0);
     if(n==='f')v=v===''?'':Math.max(0,parseFloat(v)||0);
-    setPath(S,b,v);if(b.indexOf('dr.')===0)persistDraft();if(/^pe\.phases\.\d+\.weeks$/.test(b))refreshPhases();return}
+    setPath(S,b,v);if(b.indexOf('dr.')===0)persistDraft();if(b.indexOf('tm.')===0)tmSum();if(/^pe\.phases\.\d+\.weeks$/.test(b))refreshPhases();return}
   var lv=el.getAttribute&&el.getAttribute('data-live');
   if(lv==='q'){S.q=el.value;$('#clientList').innerHTML=clientListHtml()}
   if(lv==='pq'){S.sheet.q=el.value;$('#pickList').innerHTML=pickList(el.value)}
@@ -1468,7 +1527,7 @@ document.addEventListener('pointerdown',function(){audio()},{passive:true});   /
 var WL={s:null,want:false,busy:false};
 function wlLabel(){var e=$('#wlock');if(e)e.textContent=WL.s?' · Screen stays on':''}
 function wlSync(){
-  WL.want=!!(S.user&&S.user.role==='client'&&S.dr&&S.sub&&S.sub.n==='workout'&&!isPast(S.dr));
+  WL.want=!!(S.user&&((S.user.role==='client'&&S.dr&&S.sub&&S.sub.n==='workout'&&!isPast(S.dr))||(S.tr&&!S.tr.done&&S.sub&&S.sub.n==='tmrun')));
   try{
     if(WL.want&&!WL.s&&!WL.busy&&navigator.wakeLock&&document.visibilityState==='visible'){
       WL.busy=true;
@@ -1481,8 +1540,104 @@ function wlSync(){
 }
 document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')wlSync()});
 
+/* ---------- timer tab: Tabata, custom interval timers, saved timers ---------- */
+var TABATA={id:'tabata',name:'Classic Tabata',pre:0,work:20,rest:10,cycles:8,sets:1,rsets:0,cool:0};
+var TMF=[['pre','Prepare','s',0,300,5,'p-pre'],['work','Work','s',1,3600,5,'p-work'],['rest','Rest','s',0,3600,5,'p-rest'],['cycles','Cycles','',1,99,1,'p-work'],['sets','Sets','',1,99,1,'p-cool'],['rsets','Rest between sets','s',0,3600,5,'p-rs'],['cool','Cool down','s',0,3600,5,'p-cool']];
+var TMC={'p-pre':'#7C3AED','p-work':'#FF5A3C','p-rest':'#16A34A','p-rs':'#0E9F8E','p-cool':'#2563EB'};
+function tmList(){var p=S.user.profile=S.user.profile||{};return Array.isArray(p.timers)?p.timers:[]}
+function tmPlan(t){
+  var L=[];if(t.pre>0)L.push({k:'pre',l:'Prepare',d:t.pre});else L.push({k:'lead',l:'Get ready',d:3});
+  for(var s=1;s<=t.sets;s++){
+    for(var c=1;c<=t.cycles;c++){L.push({k:'work',l:'Work',d:t.work,c:c,s:s});if(t.rest>0)L.push({k:'rest',l:'Rest',d:t.rest,c:c,s:s})}
+    if(s<t.sets&&t.rsets>0)L.push({k:'rs',l:'Rest between sets',d:t.rsets,s:s});
+  }
+  if(t.cool>0)L.push({k:'cool',l:'Cool down',d:t.cool});
+  return L;
+}
+function tmTotal(t){return tmPlan(t).reduce(function(a,x){return a+(x.k==='lead'?0:x.d)},0)}
+function tmFmt(sec){sec=Math.max(0,Math.round(sec));var h=Math.floor(sec/3600),m=Math.floor(sec%3600/60),s=sec%60;return h?h+':'+z2(m)+':'+z2(s):m+':'+z2(s)}
+function tmInfo(t){var n=tmPlan(t).filter(function(x){return x.k!=='lead'}).length;return tmFmt(tmTotal(t))+' · '+n+' interval'+(n===1?'':'s')+' · '+t.sets+' set'+(t.sets===1?'':'s')}
+function vTimer(){
+  var l=tmList();
+  return '<div class="top"><div><div class="eyebrow">Intervals and rest</div><h1 class="hello">Timer</h1></div></div>'+
+  '<p class="muted" style="margin-top:8px;font-size:13px">Pick a timer and press play. You hear short beeps in the last 3 seconds and a long beep when time is over.</p>'+
+  '<div class="tgrid">'+
+  '<div class="ttile hot" role="button" tabindex="0" data-act="tmStart" data-arg="tabata"><div class="tt">4:00</div><span class="tp">'+I.playf+'</span><div class="tn">Classic Tabata</div><div class="ts">20 s on · 10 s off<br>8 rounds</div></div>'+
+  '<button class="ttile add" data-act="tmNew"><span class="plus">'+I.plus+'</span><div class="tn">Custom timer</div><div class="ts">Build your own</div></button>'+
+  l.map(function(t){return '<div class="ttile" role="button" tabindex="0" data-act="tmStart" data-arg="'+esc(t.id)+'"><div class="tt">'+tmFmt(tmTotal(t))+'</div><span class="tp">'+I.playf+'</span><button class="tedit" data-act="tmEdit" data-arg="'+esc(t.id)+'" aria-label="Edit '+esc(t.name)+'">'+I.pen+'</button><div class="tn">'+esc(t.name)+'</div><div class="ts">'+t.work+' s work'+(t.rest?' · '+t.rest+' s rest':'')+'<br>'+t.cycles+' × '+t.sets+(t.sets>1?' sets':' round'+(t.cycles===1?'':'s'))+'</div></div>'}).join('')+
+  '</div>'+(l.length?'':'<p class="muted" style="margin-top:18px;font-size:12.5px;text-align:center">Timers you save show up here for next time.</p>');
+}
+function vTmEdit(){
+  var t=S.tm;
+  return subHead(t.isNew?'Custom timer':'Edit timer','tmBack','')+
+  '<div class="tsum" id="tmSum">'+tmInfo(t)+'</div>'+
+  '<label class="lbl" for="tmName">Name</label><div class="field"><input id="tmName" data-b="tm.name" maxlength="28" placeholder="e.g. Arms burner" value="'+esc(t.name)+'" autocomplete="off"></div>'+
+  '<div class="card" style="margin-top:18px;padding:6px 18px">'+TMF.map(function(f){var v=t[f[0]];return '<div class="trow"><div class="tlab"><i class="tdot" style="background:'+TMC[f[6]]+'"></i><div>'+f[1]+(f[2]?'<small id="tmh_'+f[0]+'">'+tmFmt(v)+'</small>':'')+'</div></div><div class="tctl"><button class="tstep" data-act="tmStep" data-arg="'+f[0]+'|-'+f[5]+'" aria-label="Less '+f[1]+'">−</button><input class="tval" id="tm_'+f[0]+'" inputmode="numeric" data-b="tm.'+f[0]+'" data-n="i" data-act-change="tmClamp" data-arg="'+f[0]+'" value="'+v+'" aria-label="'+f[1]+(f[2]?' in seconds':'')+'"><button class="tstep" data-act="tmStep" data-arg="'+f[0]+'|'+f[5]+'" aria-label="More '+f[1]+'">+</button></div></div>'}).join('')+'</div>'+
+  '<div class="err" id="tmErr" role="alert"></div>'+
+  '<div class="btns2" style="margin-top:22px"><button class="btn ghost" data-act="tmSave">'+I.check+'Save</button><button class="btn" data-act="tmGo">'+I.playf+'Start</button></div>'+
+  (t.isNew?'':'<button class="btn danger block" style="margin-top:16px" data-act="tmDel" data-arg="'+esc(t.id)+'">'+I.trash+'Delete timer</button>');
+}
+function tmSum(){var t=S.tm;if(!t)return;var e=$('#tmSum');if(e)e.textContent=tmInfo(t);TMF.forEach(function(f){if(f[2]){var h=$('#tmh_'+f[0]);if(h)h.textContent=tmFmt(t[f[0]])}})}
+function tmClampVal(f,v){var d=TMF.filter(function(x){return x[0]===f})[0];v=parseInt(v,10);if(isNaN(v))v=d[3];return Math.max(d[3],Math.min(d[4],v))}
+function vTmRun(){
+  var tr=S.tr,cur=tr.plan[tr.i],cls=tr.done?'p-done':'p-'+cur.k,t=tr.t;
+  if(tr.done)return '<div class="trun p-done"><div class="tr-top"><b>'+esc(t.name)+'</b><button class="tr-x" data-act="tmStop" aria-label="Close">'+I.x+'</button></div><div class="tr-mid"><div class="tr-ph">Time!</div><div class="tr-big" style="font-size:64px">Done</div><div class="tr-chips"><span>'+tmFmt(tmTotal(t))+' total</span><span>'+tmInfo(t).split(' · ').slice(1).join(' · ')+'</span></div></div><div class="tr-btns two"><button data-act="tmStop">Close</button><button class="main" data-act="tmAgain">Again</button></div></div>';
+  var chips=[];if(cur.c)chips.push('Round '+cur.c+' / '+t.cycles);if(cur.s&&t.sets>1)chips.push('Set '+cur.s+' / '+t.sets);
+  return '<div class="trun '+cls+(tr.paused?' pause':'')+'"><div class="tr-top"><b>'+esc(t.name)+'</b><button class="tr-x" data-act="tmStop" aria-label="Stop timer">'+I.x+'</button></div>'+
+  '<div class="tr-mid"><div class="tr-ph">'+(tr.paused?'Paused':esc(cur.l))+'</div><div class="tr-big" id="tmTime">'+tmLeftTxt(tr)+'</div><div class="tr-chips">'+chips.map(function(c){return '<span>'+c+'</span>'}).join('')+'</div></div>'+
+  '<div class="tr-bar"><i id="tmFill" style="width:'+tmPct(tr)+'%"></i></div><div class="tr-tot">Total left <span id="tmTot">'+tmFmt(tmRemain(tr))+'</span></div>'+
+  '<div class="tr-btns"><button data-act="tmPrev" aria-label="Previous interval">'+I.skipb+'</button><button class="main" data-act="tmPause" aria-label="'+(tr.paused?'Resume':'Pause')+'">'+(tr.paused?I.playf:I.pause)+'</button><button data-act="tmNext" aria-label="Skip interval">'+I.skipn+'</button></div></div>';
+}
+function tmLeftMs(tr){return tr.paused?tr.left:Math.max(0,tr.end-Date.now())}
+function tmLeftTxt(tr){return tmFmt(Math.ceil(tmLeftMs(tr)/1000))}
+function tmPct(tr){var d=tr.plan[tr.i].d*1000;return Math.max(0,Math.min(100,100*tmLeftMs(tr)/d))}
+function tmRemain(tr){var r=tmLeftMs(tr)/1000;for(var i=tr.i+1;i<tr.plan.length;i++)r+=tr.plan[i].d;return tr.plan[tr.i].k==='lead'?Math.max(0,r):r}
+function tmBegin(t){
+  var plan=tmPlan(t);S.tr={t:t,plan:plan,i:0,end:Date.now()+plan[0].d*1000,paused:false,left:0,b:{},done:false};
+  S.sub={n:'tmrun'};audio();render();
+}
+function tmGoTo(i){var tr=S.tr;if(!tr)return;if(i>=tr.plan.length){tr.done=true;render();return}i=Math.max(0,i);tr.i=i;tr.b={};tr.end=Date.now()+tr.plan[i].d*1000;tr.left=tr.plan[i].d*1000;render()}
+function tmTick(){
+  var tr=S.tr;if(!tr||tr.done||tr.paused||!S.sub||S.sub.n!=='tmrun')return;
+  var now=Date.now(),moved=false,guard=0;
+  while(now>=tr.end&&guard++<400){
+    var fresh=now-tr.end<2500;
+    if(tr.i>=tr.plan.length-1){tr.done=true;if(fresh)beepLong();render();return}
+    tr.i++;tr.b={};tr.end+=tr.plan[tr.i].d*1000;moved=true;if(fresh)beepLong();
+  }
+  if(moved){render();return}
+  var left=Math.ceil((tr.end-now)/1000);
+  if(left<=3&&left>=1&&!tr.b[left]){tr.b[left]=1;beepShort()}
+  var a=$('#tmTime');if(a)a.textContent=tmFmt(left);
+  var f=$('#tmFill');if(f)f.style.width=tmPct(tr)+'%';
+  var o=$('#tmTot');if(o)o.textContent=tmFmt(tmRemain(tr));
+}
+Object.assign(A,{
+  tmNew:function(){S.tm={isNew:true,id:uid(),name:'',pre:5,work:40,rest:20,cycles:6,sets:1,rsets:0,cool:0};S.sub={n:'tmedit'};render()},
+  tmEdit:function(a){var t=tmList().filter(function(x){return x.id===a})[0];if(!t)return;S.tm=Object.assign({isNew:false},t);S.sub={n:'tmedit'};render()},
+  tmBack:function(){S.tm=null;S.sub=null;render()},
+  tmStep:function(a){var p=a.split('|'),f=p[0],t=S.tm;if(!t)return;t[f]=tmClampVal(f,(+t[f]||0)+parseInt(p[1],10));var i=$('#tm_'+f);if(i)i.value=t[f];tmSum()},
+  tmStart:function(a){var t=a==='tabata'?TABATA:tmList().filter(function(x){return x.id===a})[0];if(t)tmBegin(Object.assign({},t))},
+  tmGo:function(){var t=S.tm;if(!t)return;TMF.forEach(function(f){t[f[0]]=tmClampVal(f[0],t[f[0]])});if(!t.name||!t.name.trim())t.name='Custom timer';tmBegin(Object.assign({},t))},
+  tmSave:function(){
+    var t=S.tm;if(!t)return;TMF.forEach(function(f){t[f[0]]=tmClampVal(f[0],t[f[0]])});
+    var nm=(t.name||'').trim().replace(/\s+/g,' ');if(!nm){showErr('tmErr','Give your timer a name so you can find it later.');return}
+    var rec={id:t.id,name:nm.slice(0,28),pre:t.pre,work:t.work,rest:t.rest,cycles:t.cycles,sets:t.sets,rsets:t.rsets,cool:t.cool};
+    var l=tmList().slice(),i=-1;l.forEach(function(x,k){if(x.id===rec.id)i=k});if(i>=0)l[i]=rec;else l.push(rec);
+    S.user.profile.timers=l;save();S.tm=null;S.sub=null;toast('Timer saved');render()},
+  tmDel:function(a){openSheet({type:'confirm',title:'Delete this timer?',body:'It is removed from your saved timers.',ok:'Delete',danger:true,act:'tmDelGo',arg:a})},
+  tmDelGo:function(a){S.user.profile.timers=tmList().filter(function(x){return x.id!==a});save();S.tm=null;S.sub=null;closeSheet();toast('Timer deleted');render()},
+  tmPause:function(){var tr=S.tr;if(!tr||tr.done)return;if(tr.paused){tr.paused=false;tr.end=Date.now()+tr.left}else{tr.left=Math.max(0,tr.end-Date.now());tr.paused=true}render()},
+  tmNext:function(){if(S.tr)tmGoTo(S.tr.i+1)},
+  tmPrev:function(){var tr=S.tr;if(!tr)return;var el=tr.plan[tr.i].d*1000-tmLeftMs(tr);tmGoTo(el>2500?tr.i:Math.max(0,tr.i-1))},
+  tmStop:function(){S.tr=null;S.sub=null;render()},
+  tmAgain:function(){if(S.tr)tmBegin(S.tr.t)}
+});
+document.addEventListener('keydown',function(ev){if((ev.key==='Enter'||ev.key===' ')&&ev.target.classList&&ev.target.classList.contains('ttile')&&ev.target.getAttribute('role')==='button'){ev.preventDefault();ev.target.click()}});
+
 /* timers */
 setInterval(function(){
+  tmTick();
   if(S.dr&&S.sub&&S.sub.n==='workout'){var e=$('#elapsed');if(e)e.textContent=mmss((Date.now()-S.dr.startedAt)/1000)}
   if(S.rest){
     var left=Math.ceil((S.rest.end-Date.now())/1000),bar=$('#restbar');
@@ -1619,7 +1774,7 @@ function cloudLogout(msg,skipRemote){
   tokSet(null);cacheClear();
   if(t&&!skipRemote)api('fw_logout',{p_token:t}).catch(function(){});
   DB={users:[],programs:[],templates:[],logs:[],live:{},drafts:{},custom:[]};
-  S.user=null;S.sub=null;S.dr=null;S.rest=null;S.tab='home';S.stage=null;S.pending=null;S.sheet=null;
+  S.user=null;S.sub=null;S.dr=null;S.rest=null;S.tr=null;S.tab='home';S.stage=null;S.pending=null;S.sheet=null;
   syncUi();render();
   if(msg)setTimeout(function(){showErr('loginErr',msg)},50);
 }
