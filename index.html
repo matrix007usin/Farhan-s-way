@@ -1541,30 +1541,30 @@ function wlSync(){
 document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')wlSync()});
 
 /* ---------- timer tab: Tabata, custom interval timers, saved timers ---------- */
-var TABATA={id:'tabata',name:'Classic Tabata',pre:0,work:20,rest:10,cycles:8,sets:1,rsets:0,cool:0};
-var TMF=[['pre','Prepare','s',0,300,5,'p-pre'],['work','Work','s',1,3600,5,'p-work'],['rest','Rest','s',0,3600,5,'p-rest'],['cycles','Cycles','',1,99,1,'p-work'],['sets','Sets','',1,99,1,'p-cool'],['rsets','Rest between sets','s',0,3600,5,'p-rs'],['cool','Cool down','s',0,3600,5,'p-cool']];
+var TABATA={id:'tabata',name:'Classic Tabata',pre:0,work:20,rest:10,cycles:8,sets:1,rsets:0,cool:0,keepEnd:1};
+var TMF=[['pre','Prepare','s',0,300,5,'p-pre'],['work','Work','s',1,3600,5,'p-work'],['rest','Rest','s',0,3600,5,'p-rest'],['cycles','Sets','',1,99,1,'p-work'],['sets','Rounds','',1,99,1,'p-cool'],['rsets','Rest between rounds','s',0,3600,5,'p-rs'],['cool','Cool down','s',0,3600,5,'p-cool']];
 var TMC={'p-pre':'#7C3AED','p-work':'#FF5A3C','p-rest':'#16A34A','p-rs':'#0E9F8E','p-cool':'#2563EB'};
 function tmList(){var p=S.user.profile=S.user.profile||{};return Array.isArray(p.timers)?p.timers:[]}
 function tmPlan(t){
   var L=[];if(t.pre>0)L.push({k:'pre',l:'Prepare',d:t.pre});else L.push({k:'lead',l:'Get ready',d:3});
   for(var s=1;s<=t.sets;s++){
-    for(var c=1;c<=t.cycles;c++){L.push({k:'work',l:'Work',d:t.work,c:c,s:s});if(t.rest>0)L.push({k:'rest',l:'Rest',d:t.rest,c:c,s:s})}
-    if(s<t.sets&&t.rsets>0)L.push({k:'rs',l:'Rest between sets',d:t.rsets,s:s});
+    for(var c=1;c<=t.cycles;c++){L.push({k:'work',l:'Work',d:t.work,c:c,s:s});if(t.rest>0&&(c<t.cycles||t.keepEnd))L.push({k:'rest',l:'Rest',d:t.rest,c:c,s:s})}   // no rest after the last set of a round (Classic Tabata keeps its closing rest so it stays 4:00)
+    if(s<t.sets&&t.rsets>0)L.push({k:'rs',l:'Rest between rounds',d:t.rsets,s:s});
   }
   if(t.cool>0)L.push({k:'cool',l:'Cool down',d:t.cool});
   return L;
 }
 function tmTotal(t){return tmPlan(t).reduce(function(a,x){return a+(x.k==='lead'?0:x.d)},0)}
 function tmFmt(sec){sec=Math.max(0,Math.round(sec));var h=Math.floor(sec/3600),m=Math.floor(sec%3600/60),s=sec%60;return h?h+':'+z2(m)+':'+z2(s):m+':'+z2(s)}
-function tmInfo(t){var n=tmPlan(t).filter(function(x){return x.k!=='lead'}).length;return tmFmt(tmTotal(t))+' · '+n+' interval'+(n===1?'':'s')+' · '+t.sets+' set'+(t.sets===1?'':'s')}
+function tmInfo(t){var n=tmPlan(t).filter(function(x){return x.k!=='lead'}).length;return tmFmt(tmTotal(t))+' · '+n+' interval'+(n===1?'':'s')+' · '+t.sets+' round'+(t.sets===1?'':'s')}
 function vTimer(){
   var l=tmList();
   return '<div class="top"><div><div class="eyebrow">Intervals and rest</div><h1 class="hello">Timer</h1></div></div>'+
   '<p class="muted" style="margin-top:8px;font-size:13px">Pick a timer and press play. You hear short beeps in the last 3 seconds and a long beep when time is over.</p>'+
   '<div class="tgrid">'+
-  '<div class="ttile hot" role="button" tabindex="0" data-act="tmStart" data-arg="tabata"><div class="tt">4:00</div><span class="tp">'+I.playf+'</span><div class="tn">Classic Tabata</div><div class="ts">20 s on · 10 s off<br>8 rounds</div></div>'+
+  '<div class="ttile hot" role="button" tabindex="0" data-act="tmStart" data-arg="tabata"><div class="tt">4:00</div><span class="tp">'+I.playf+'</span><div class="tn">Classic Tabata</div><div class="ts">20 s on · 10 s off<br>8 sets</div></div>'+
   '<button class="ttile add" data-act="tmNew"><span class="plus">'+I.plus+'</span><div class="tn">Custom timer</div><div class="ts">Build your own</div></button>'+
-  l.map(function(t){return '<div class="ttile" role="button" tabindex="0" data-act="tmStart" data-arg="'+esc(t.id)+'"><div class="tt">'+tmFmt(tmTotal(t))+'</div><span class="tp">'+I.playf+'</span><button class="tedit" data-act="tmEdit" data-arg="'+esc(t.id)+'" aria-label="Edit '+esc(t.name)+'">'+I.pen+'</button><div class="tn">'+esc(t.name)+'</div><div class="ts">'+t.work+' s work'+(t.rest?' · '+t.rest+' s rest':'')+'<br>'+t.cycles+' × '+t.sets+(t.sets>1?' sets':' round'+(t.cycles===1?'':'s'))+'</div></div>'}).join('')+
+  l.map(function(t){return '<div class="ttile" role="button" tabindex="0" data-act="tmStart" data-arg="'+esc(t.id)+'"><div class="tt">'+tmFmt(tmTotal(t))+'</div><span class="tp">'+I.playf+'</span><button class="tedit" data-act="tmEdit" data-arg="'+esc(t.id)+'" aria-label="Edit '+esc(t.name)+'">'+I.pen+'</button><div class="tn">'+esc(t.name)+'</div><div class="ts">'+t.work+' s work'+(t.rest?' · '+t.rest+' s rest':'')+'<br>'+t.cycles+' set'+(t.cycles===1?'':'s')+(t.sets>1?' × '+t.sets+' rounds':'')+'</div></div>'}).join('')+
   '</div>'+(l.length?'':'<p class="muted" style="margin-top:18px;font-size:12.5px;text-align:center">Timers you save show up here for next time.</p>');
 }
 function vTmEdit(){
@@ -1582,7 +1582,7 @@ function tmClampVal(f,v){var d=TMF.filter(function(x){return x[0]===f})[0];v=par
 function vTmRun(){
   var tr=S.tr,cur=tr.plan[tr.i],cls=tr.done?'p-done':'p-'+cur.k,t=tr.t;
   if(tr.done)return '<div class="trun p-done"><div class="tr-top"><b>'+esc(t.name)+'</b><button class="tr-x" data-act="tmStop" aria-label="Close">'+I.x+'</button></div><div class="tr-mid"><div class="tr-ph">Time!</div><div class="tr-big" style="font-size:64px">Done</div><div class="tr-chips"><span>'+tmFmt(tmTotal(t))+' total</span><span>'+tmInfo(t).split(' · ').slice(1).join(' · ')+'</span></div></div><div class="tr-btns two"><button data-act="tmStop">Close</button><button class="main" data-act="tmAgain">Again</button></div></div>';
-  var chips=[];if(cur.c)chips.push('Round '+cur.c+' / '+t.cycles);if(cur.s&&t.sets>1)chips.push('Set '+cur.s+' / '+t.sets);
+  var chips=[];if(cur.c)chips.push('Set '+cur.c+' / '+t.cycles);if(cur.s&&t.sets>1)chips.push('Round '+cur.s+' / '+t.sets);
   return '<div class="trun '+cls+(tr.paused?' pause':'')+'"><div class="tr-top"><b>'+esc(t.name)+'</b><button class="tr-x" data-act="tmStop" aria-label="Stop timer">'+I.x+'</button></div>'+
   '<div class="tr-mid"><div class="tr-ph">'+(tr.paused?'Paused':esc(cur.l))+'</div><div class="tr-big" id="tmTime">'+tmLeftTxt(tr)+'</div><div class="tr-chips">'+chips.map(function(c){return '<span>'+c+'</span>'}).join('')+'</div></div>'+
   '<div class="tr-bar"><i id="tmFill" style="width:'+tmPct(tr)+'%"></i></div><div class="tr-tot">Total left <span id="tmTot">'+tmFmt(tmRemain(tr))+'</span></div>'+
