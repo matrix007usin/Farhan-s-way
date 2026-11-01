@@ -300,6 +300,16 @@
   .ttile.add .plus svg{width:24px;height:24px}
   .ttile .tedit{position:absolute;top:14px;right:58px;width:38px;height:38px;border:0;border-radius:50%;background:transparent;color:var(--muted);display:grid;place-items:center}
   .ttile .tedit svg{width:17px;height:17px}
+  .srow{display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--line)}
+  .srow:last-child{border-bottom:0}
+  .sname{flex:1;min-width:0;display:flex;align-items:center;gap:12px;border:0;background:none;text-align:left;padding:0;font:inherit;color:var(--ink)}
+  .sname b{display:block;font-size:14px;font-weight:700}
+  .sname small{display:block;font-size:11.5px;color:var(--muted);margin-top:1px}
+  .sdot{width:24px;height:24px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;color:#fff;flex:none}
+  .sdot svg{width:14px;height:14px}
+  .srow.on .sdot{background:var(--grad);border-color:transparent}
+  .sbtn{height:34px;padding:0 13px;border:0;border-radius:11px;background:var(--soft);color:var(--violet);font-weight:700;font-size:12.5px}
+  .sbtn:active{background:var(--violet);color:#fff}
   .tsum{margin-top:14px;padding:14px 16px;border-radius:18px;background:var(--grad);color:#fff;text-align:center;font-weight:700;font-size:14px;font-variant-numeric:tabular-nums}
   .trow{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px;padding:13px 0;border-bottom:1px solid var(--line)}
   .trow:last-of-type{border-bottom:0}
@@ -1519,8 +1529,47 @@ function beep(freq,dur,vol){var a=audio();if(!a)return;try{var o=a.createOscilla
   g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+.02);g.gain.setValueAtTime(vol,t+Math.max(.03,dur-.08));g.gain.exponentialRampToValueAtTime(.0001,t+dur);
   o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+dur+.02)}catch(e){}}
 function buzz(p){try{if(navigator.vibrate)navigator.vibrate(p)}catch(e){}}
-function beepShort(){beep(880,.14,.4);buzz(70)}
-function beepLong(){beep(660,1.1,.45);buzz([700])}
+// Modern beep sounds. Everything goes through a master gain + limiter, so it is loud without distorting.
+function chainOut(a){
+  if(a.__m)return a.__m;var g=a.createGain();g.gain.value=2.4;var c=null;try{c=a.createDynamicsCompressor()}catch(e){}
+  if(c){try{c.threshold.value=-22;c.knee.value=12;c.ratio.value=10;c.attack.value=.002;c.release.value=.15}catch(e){}var mk=a.createGain();mk.gain.value=1.28;g.connect(c);c.connect(mk);mk.connect(a.destination)}else g.connect(a.destination);
+  a.__m=g;return g;
+}
+function tn(o){
+  var a=audio();if(!a)return;
+  try{
+    var t=a.currentTime+(o.at||0),d=o.dur,osc=a.createOscillator(),g=a.createGain(),att=o.att||.008,v=o.vol;
+    osc.type=o.type||'sine';osc.frequency.setValueAtTime(o.f,t);if(o.f2)osc.frequency.exponentialRampToValueAtTime(o.f2,t+d);
+    g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+att);
+    if(!o.decay)g.gain.setValueAtTime(v,t+Math.max(att+.005,d-.06));
+    g.gain.exponentialRampToValueAtTime(.0001,t+d);
+    var n=osc;if(o.lp){var f=a.createBiquadFilter();f.type='lowpass';f.frequency.value=o.lp;osc.connect(f);n=f}
+    n.connect(g);g.connect(chainOut(a));
+    if(o.vib){var l=a.createOscillator(),lg=a.createGain();l.frequency.value=o.vib[0];lg.gain.value=o.vib[1];l.connect(lg);lg.connect(osc.frequency);l.start(t);l.stop(t+d+.05)}
+    osc.start(t);osc.stop(t+d+.05);
+  }catch(e){}
+}
+function bellTone(f,d){[[1,1],[2.76,.45],[5.4,.22],[8.93,.1]].forEach(function(p,i){tn({f:f*p[0],dur:d/(1+i*.45),vol:.9*p[1],decay:1,att:.003})})}
+var SND={
+  digital:{n:'Digital',d:'Sharp sports-watch beep',
+    short:function(){tn({type:'triangle',f:1760,dur:.16,vol:.95});tn({f:3520,dur:.16,vol:.3})},
+    long:function(){tn({type:'triangle',f:1760,dur:.5,vol:.95});tn({f:3520,dur:.5,vol:.28});tn({type:'triangle',f:2349,at:.5,dur:.8,vol:1});tn({f:4698,at:.5,dur:.8,vol:.28})}},
+  bell:{n:'Bell',d:'Clear, ringing ding',
+    short:function(){bellTone(1480,.55)},long:function(){bellTone(880,2)}},
+  whistle:{n:'Whistle',d:'Cuts through gym noise',
+    short:function(){tn({f:2900,f2:2750,dur:.17,vol:.9,vib:[34,110]})},
+    long:function(){tn({f:2900,f2:2500,dur:1,vol:.95,vib:[34,120]});tn({f:5800,f2:5000,dur:1,vol:.15,vib:[34,200]})}},
+  chime:{n:'Chime',d:'Bright, friendly notes',
+    short:function(){tn({f:1976,dur:.35,vol:.9,decay:1,att:.004});tn({f:3952,dur:.25,vol:.25,decay:1,att:.004})},
+    long:function(){[1047,1319,1568].forEach(function(f,i){tn({f:f,at:i*.16,dur:.5,vol:.8,decay:1,att:.004})});tn({f:2093,at:.48,dur:1.1,vol:.95,decay:1,att:.004});tn({f:4186,at:.48,dur:.8,vol:.2,decay:1,att:.004})}},
+  horn:{n:'Horn',d:'Deep and very loud',
+    short:function(){tn({type:'sawtooth',f:330,dur:.2,vol:.8,lp:1400})},
+    long:function(){tn({type:'sawtooth',f:220,dur:1.15,vol:.85,lp:1000});tn({type:'sawtooth',f:223,dur:1.15,vol:.6,lp:1000})}}
+};
+function sndCur(){var id=S.user&&S.user.profile&&S.user.profile.snd;return SND[id]?id:'digital'}
+function playSnd(kind,id){try{SND[id||sndCur()][kind]()}catch(e){}}
+function beepShort(){try{if(window.__onBeep)window.__onBeep('short')}catch(e){}playSnd('short');buzz(70)}
+function beepLong(){try{if(window.__onBeep)window.__onBeep('long')}catch(e){}playSnd('long');buzz([700])}
 document.addEventListener('pointerdown',function(){audio()},{passive:true});   // browsers only allow sound after a tap
 
 /* keep the screen on while a live workout is open */
@@ -1565,7 +1614,9 @@ function vTimer(){
   '<div class="ttile hot" role="button" tabindex="0" data-act="tmStart" data-arg="tabata"><div class="tt">4:00</div><span class="tp">'+I.playf+'</span><div class="tn">Classic Tabata</div><div class="ts">20 s on · 10 s off<br>8 sets</div></div>'+
   '<button class="ttile add" data-act="tmNew"><span class="plus">'+I.plus+'</span><div class="tn">Custom timer</div><div class="ts">Build your own</div></button>'+
   l.map(function(t){return '<div class="ttile" role="button" tabindex="0" data-act="tmStart" data-arg="'+esc(t.id)+'"><div class="tt">'+tmFmt(tmTotal(t))+'</div><span class="tp">'+I.playf+'</span><button class="tedit" data-act="tmEdit" data-arg="'+esc(t.id)+'" aria-label="Edit '+esc(t.name)+'">'+I.pen+'</button><div class="tn">'+esc(t.name)+'</div><div class="ts">'+t.work+' s work'+(t.rest?' · '+t.rest+' s rest':'')+'<br>'+t.cycles+' set'+(t.cycles===1?'':'s')+(t.sets>1?' × '+t.sets+' rounds':'')+'</div></div>'}).join('')+
-  '</div>'+(l.length?'':'<p class="muted" style="margin-top:18px;font-size:12.5px;text-align:center">Timers you save show up here for next time.</p>');
+  '</div>'+(l.length?'':'<p class="muted" style="margin-top:18px;font-size:12.5px;text-align:center">Timers you save show up here for next time.</p>')+
+  '<div class="sec-title"><h2>Beep sound</h2></div><div class="card" style="padding:8px 16px"><p class="muted" style="font-size:12px;margin:8px 0 4px">Used for the timers and the rest timer in your workout. Turn the phone volume up.</p>'+
+  Object.keys(SND).map(function(k){var on=sndCur()===k;return '<div class="srow'+(on?' on':'')+'"><button class="sname" data-act="sndPick" data-arg="'+k+'" aria-pressed="'+on+'"><span class="sdot">'+(on?I.check:'')+'</span><span><b>'+SND[k].n+'</b><small>'+SND[k].d+'</small></span></button><button class="sbtn" data-act="sndTest" data-arg="'+k+'|short">Short</button><button class="sbtn" data-act="sndTest" data-arg="'+k+'|long">Long</button></div>'}).join('')+'</div>';
 }
 function vTmEdit(){
   var t=S.tm;
@@ -1613,6 +1664,8 @@ function tmTick(){
   var o=$('#tmTot');if(o)o.textContent=tmFmt(tmRemain(tr));
 }
 Object.assign(A,{
+  sndPick:function(a){if(!SND[a])return;S.user.profile=S.user.profile||{};S.user.profile.snd=a;save();render();playSnd('short',a);setTimeout(function(){playSnd('long',a)},750)},
+  sndTest:function(a){var p=a.split('|');playSnd(p[1],p[0])},
   tmNew:function(){S.tm={isNew:true,id:uid(),name:'',pre:5,work:40,rest:20,cycles:6,sets:1,rsets:0,cool:0};S.sub={n:'tmedit'};render()},
   tmEdit:function(a){var t=tmList().filter(function(x){return x.id===a})[0];if(!t)return;S.tm=Object.assign({isNew:false},t);S.sub={n:'tmedit'};render()},
   tmBack:function(){S.tm=null;S.sub=null;render()},
