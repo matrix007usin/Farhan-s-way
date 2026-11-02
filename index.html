@@ -202,6 +202,13 @@
   .dcard{margin-top:12px;padding:0;overflow:hidden}
   .dcard-h{display:flex;align-items:center;gap:10px;padding:14px 14px 14px 16px;width:100%;border:0;background:none;text-align:left;font:inherit;color:inherit}
   .dcard-h .t{flex:1;min-width:0}.dcard-h .t b{display:block;font-size:15px}.dcard-h .t span{font-size:12.5px;color:var(--muted)}
+  .dcard.done{background:linear-gradient(135deg,#e3f8ea,#d2f3df);border-color:#9fdcb4}
+  .dcard.done .dcard-b{border-top-color:#9fdcb4}
+  .dcard-h .tt{flex:1;min-width:0;border:0;background:none;padding:0;text-align:left;font:inherit;color:inherit}
+  .dcard-h .tt b{display:block;font-size:15px}.dcard-h .tt span{font-size:12.5px;color:var(--muted)}
+  .dstart{flex:none;height:36px;padding:0 14px;border:0;border-radius:18px;background:linear-gradient(135deg,#ff7a1a,#ff3d8b 55%,#8b5cf6);color:#fff;font:inherit;font-weight:700;font-size:13px;display:inline-flex;align-items:center;gap:6px}
+  .dstart svg{width:14px;height:14px}
+  .dcard.done .dstart{background:#1f9d55}
   .dcard-b{padding:0 16px 14px;border-top:1px solid var(--line)}
   .dcard-f{display:flex;justify-content:flex-end;padding-top:12px}
   .phase{margin-top:40px}
@@ -877,8 +884,11 @@ function totalText(ph){var t=ph.length;return t+' week'+(t===1?'':'s')+' in tota
 function refreshPhases(){}
 function weekTabs(n,sel,act,extra){var h='<div class="wktabs" role="tablist">';for(var i=0;i<n;i++)h+='<button class="wktab'+(i===sel?' on':'')+'" role="tab" aria-selected="'+(i===sel)+'" data-act="'+act+'" data-arg="'+i+'">Week '+(i+1)+'</button>';return h+(extra||'')+'</div>'}
 function dayTitle(d,di){var n=(d.name||'').trim();return /^day\s*\d+$/i.test(n)||!n?'Day '+(di+1):/^day\s*\d+\s*[-–:]/i.test(n)?n:'Day '+(di+1)+' - '+n}
-function dayRO(d,di,open,act){
-  return '<div class="card dcard"><button class="dcard-h" data-act="'+act+'" data-arg="'+di+'" aria-expanded="'+open+'"><div class="t"><b>'+esc(dayTitle(d,di))+'</b><span>'+d.ex.length+' exercise'+(d.ex.length===1?'':'s')+'</span></div><span class="xarrow">'+(open?I.chevu:I.chevd)+'</span></button>'+
+function dayRO(d,di,open,act,o){
+  o=o||{};var tgl=function(c,l){return '<button class="'+c+'" data-act="'+act+'" data-arg="'+di+'" aria-expanded="'+open+'"'+(l?' aria-label="'+l+'"':'')+'>'};
+  return '<div class="card dcard'+(o.done?' done':'')+'"><div class="dcard-h">'+tgl('tt')+'<b>'+esc(dayTitle(d,di))+'</b><span>'+(o.done?'Done · ':'')+d.ex.length+' exercise'+(d.ex.length===1?'':'s')+'</span></button>'+
+  (o.start?'<button class="dstart" data-act="startDay" data-arg="'+o.start+'" aria-label="Start '+esc(dayTitle(d,di))+'">'+(o.done?I.check:I.play)+(o.done?'Again':'Start')+'</button>':'')+
+  '<button class="xarrow" data-act="'+act+'" data-arg="'+di+'" aria-label="'+(open?'Collapse':'Open')+'">'+(open?I.chevu:I.chevd)+'</button></div>'+
   (open?'<div class="dcard-b">'+d.ex.map(function(e){return '<div style="display:flex;justify-content:space-between;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)"><span style="font-weight:600">'+esc(e.ex)+'</span><span class="muted" style="white-space:nowrap">'+e.sets+' × '+esc(e.reps)+(e.rest?' · '+esc(fmtRest(e.rest)):'')+'</span></div>'}).join('')+'<div class="dcard-f"><button class="xarrow" data-act="'+act+'" data-arg="'+di+'" aria-label="Collapse">'+I.chevu+'</button></div></div>':'')+'</div>'}
 function vProgEdit(){
   var pe=S.pe,wi=Math.min(pe.wk||0,pe.phases.length-1),ph=pe.phases[wi];pe.open=pe.open||{};
@@ -910,11 +920,11 @@ function vSettings(){
 
 /* ---------- client ---------- */
 function myProg(u,nd){
-  var p=progBy(u.program);if(!p)return '';var ph=pPhases(p),tw=pWeeks(p),n=tw||1,cur=nd&&nd.wk?nd.wk-1:0;
+  var p=progBy(u.program);if(!p)return '<div class="hero" style="margin-top:24px"><h2 style="font-size:18px;font-weight:700">No program yet</h2><p class="muted" style="margin-top:10px">Your trainer will assign one. Meanwhile you can log your own workout.</p></div>';var ph=pPhases(p),tw=pWeeks(p),n=tw||1,cur=nd&&nd.wk?nd.wk-1:0;
   S.pv=S.pv||{};if(S.pv.wk==null||S.pv.wk>=n)S.pv.wk=Math.min(cur,n-1);S.pv.open=S.pv.open||{};
   var w=S.pv.wk,days=phaseAt(p,w+1).ph.days||[];
   return '<div class="sec-title"><h2>My program</h2></div><div class="card" style="padding-bottom:16px"><b>'+esc(p.name)+'</b>'+(tw>1?weekTabs(n,w,'pvWk'):'')+
-   '<div style="margin-top:4px">'+days.map(function(d,di){return dayRO(d,di,!!S.pv.open[di],'pvDay')}).join('')+'</div></div>';
+   '<div style="margin-top:4px">'+days.map(function(d,di){return dayRO(d,di,!!S.pv.open[di],'pvDay',{start:(w+1)+'|'+di,done:DB.logs.some(function(l){return l.cid===u.id&&l.pid===p.id&&l.source==='program'&&l.name===d.name&&(!tw||(l.wk||1)===w+1)})})}).join('')+'</div></div>';
 }
 function vWorkoutTab(){
   var u=S.user,ls=logsOf(u.id),nd=nextDay(u),tp=tplsOf(u.id),wk=weekDays(),dr=DB.drafts[u.id];
@@ -922,10 +932,6 @@ function vWorkoutTab(){
   var dates={};ls.forEach(function(l){dates[l.date]=1});
   return '<div class="top"><div><div class="eyebrow">'+new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'})+'</div><h1 class="hello">Workout</h1></div></div>'+
   resumeBanner(u)+
-  (nd?'<div class="hero" style="margin-top:24px"><span class="chip org">Today\'s workout</span>'+(nd.tw?' <span class="chip info" style="margin-left:6px">Week '+nd.wk+' of '+nd.tw+'</span>':'')+'<h2 style="font-size:22px;font-weight:700;margin-top:14px">'+esc(nd.d.name)+'</h2><div class="muted" style="margin-top:3px">'+esc(nd.p.name)+' · Day '+(nd.i+1)+' of '+nd.n+'</div>'+(nd.tw&&nd.done>=nd.n?'<p class="muted" style="font-size:12.5px;margin-top:10px">This week\'s plan is done. Your trainer will move you to the next week.</p>':'')+
-    '<div style="margin-top:18px;display:flex;flex-direction:column;gap:4px">'+nd.d.ex.slice(0,4).map(function(e){return '<div style="display:flex;justify-content:space-between;gap:10px;padding:12px 0;border-top:1px solid var(--line)"><span style="font-weight:600">'+esc(e.ex)+'</span><span class="muted">'+e.sets+' × '+esc(e.reps)+(e.rest?' · '+esc(fmtRest(e.rest)):'')+'</span></div>'}).join('')+(nd.d.ex.length>4?'<div class="muted" style="font-size:12.5px;padding-top:10px">+ '+(nd.d.ex.length-4)+' more exercises</div>':'')+'</div>'+
-    '<button class="btn block" style="margin-top:26px;min-height:50px;font-size:15px" data-act="startProg">'+I.play+'Start workout</button></div>'
-  :'<div class="hero" style="margin-top:24px"><h2 style="font-size:18px;font-weight:700">No program yet</h2><p class="muted" style="margin-top:10px">Your trainer will assign one. Meanwhile you can log your own workout.</p></div>')+
   myProg(u,nd)+
   '<div class="card" style="margin-top:22px"><div style="display:flex;justify-content:space-between;align-items:baseline"><h2 style="font-size:15px;font-weight:700">This week</h2><span class="muted" style="font-size:12.5px">'+wkLogs.length+' workout'+(wkLogs.length===1?'':'s')+' · '+nf(vol)+' kg</span></div><div class="week">'+wk.map(function(d){return '<div><i class="'+(dates[d.k]?'on':'')+'">'+(dates[d.k]?I.check:'')+'</i><span class="'+(d.t?'t':'')+'">'+d.lbl+'</span></div>'}).join('')+'</div></div>'+
   '<div class="sec-title"><h2>Start your own</h2></div><div class="card"><div class="tplchips">'+tp.map(function(t){return '<button class="btn sm soft" data-act="startTpl" data-arg="'+t.id+'">'+I.play+esc(t.name)+'</button>'}).join('')+'<button class="btn sm ghost" data-act="startFree">'+I.plus+'Empty workout</button></div>'+(tp.length?'':'<p class="muted" style="font-size:12.5px;margin-top:14px">Make your own templates in the Templates tab.</p>')+'</div>'+
@@ -1275,6 +1281,7 @@ var A={
     save();S.sub=null;S.te=null;toast('Template saved');render()},
   askDelTpl:function(a){openSheet({type:'confirm',title:'Delete this template?',body:'Your past workouts are not affected.',ok:'Delete',danger:true,act:'doDelTpl',arg:a})},
   doDelTpl:function(a){DB.templates=DB.templates.filter(function(t){return t.id!==a});save();S.sub=null;S.te=null;closeSheet();toast('Template deleted');render()},
+  startDay:function(a){var q=a.split('|'),p=progBy(S.user.program);if(!p)return;var d=phaseAt(p,+q[0]).ph.days[+q[1]];if(!d)return;var tw=pWeeks(p);startDraft(d.name,d.ex,'program',{pid:p.id,wk:tw?+q[0]:null})},
   startProg:function(){var nd=nextDay(S.user);if(!nd)return;startDraft(nd.d.name,nd.d.ex,'program',{pid:nd.p.id,wk:nd.tw?nd.wk:null})},
   startTpl:function(a){var t=DB.templates.filter(function(x){return x.id===a})[0];startDraft(t.name,t.ex,'template',{tid:t.id})},
   startFree:function(){startDraft('My workout',[],'free');},
