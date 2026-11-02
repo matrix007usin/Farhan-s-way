@@ -300,16 +300,12 @@
   .ttile.add .plus svg{width:24px;height:24px}
   .ttile .tedit{position:absolute;top:14px;right:58px;width:38px;height:38px;border:0;border-radius:50%;background:transparent;color:var(--muted);display:grid;place-items:center}
   .ttile .tedit svg{width:17px;height:17px}
-  .srow{display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--line)}
-  .srow:last-child{border-bottom:0}
-  .sname{flex:1;min-width:0;display:flex;align-items:center;gap:12px;border:0;background:none;text-align:left;padding:0;font:inherit;color:var(--ink)}
-  .sname b{display:block;font-size:14px;font-weight:700}
-  .sname small{display:block;font-size:11.5px;color:var(--muted);margin-top:1px}
-  .sdot{width:24px;height:24px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;color:#fff;flex:none}
-  .sdot svg{width:14px;height:14px}
-  .srow.on .sdot{background:var(--grad);border-color:transparent}
-  .sbtn{height:34px;padding:0 13px;border:0;border-radius:11px;background:var(--soft);color:var(--violet);font-weight:700;font-size:12.5px}
-  .sbtn:active{background:var(--violet);color:#fff}
+  #livepill{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(78px + env(safe-area-inset-bottom,0px));z-index:25;display:none;align-items:center;gap:10px;max-width:calc(100% - 28px);padding:11px 14px 11px 16px;border:0;border-radius:99px;background:#1B1530;color:#fff;font-size:13px;font-weight:700;box-shadow:0 14px 30px -12px rgba(0,0,0,.55);font-variant-numeric:tabular-nums;white-space:nowrap}
+  #livepill.on{display:flex}#livepill.low{bottom:calc(16px + env(safe-area-inset-bottom,0px))}
+  #livepill i{width:9px;height:9px;border-radius:50%;background:#22C55E;box-shadow:0 0 0 0 rgba(34,197,94,.7);animation:lp 1.6s infinite;flex:none}
+  #livepill span{overflow:hidden;text-overflow:ellipsis}
+  #livepill b{color:#FFB27A;font-weight:700;flex:none}
+  @keyframes lp{70%{box-shadow:0 0 0 9px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
   .tsum{margin-top:14px;padding:14px 16px;border-radius:18px;background:var(--grad);color:#fff;text-align:center;font-weight:700;font-size:14px;font-variant-numeric:tabular-nums}
   .trow{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px;padding:13px 0;border-bottom:1px solid var(--line)}
   .trow:last-of-type{border-bottom:0}
@@ -460,7 +456,7 @@
 var LS_KEY='fw_demo_v3', SES_KEY='fw_session_v2';
 var H_ADMIN='7152081164233959', H_DEF='6020539609232567';  // salted hashes, never the plain passwords
 var DEFAULT_REST=90;
-var CFG=window.FW_CONFIG||null, CLOUD=!!(CFG&&CFG.url&&CFG.key), TOK_KEY='fw_token_v1', CACHE_KEY='fw_cache_v1', PWMIN=CLOUD?6:4;
+var CFG=window.FW_CONFIG||null, CLOUD=!!(CFG&&CFG.url&&CFG.key), TOK_KEY='fw_token_v1', RUN_KEY='fw_run_v1', CACHE_KEY='fw_cache_v1', PWMIN=CLOUD?6:4;
 
 function hash(str,seed){seed=seed||0;var h1=0xdeadbeef^seed,h2=0x41c6ce57^seed;
   for(var i=0,ch;i<str.length;i++){ch=str.charCodeAt(i);h1=Math.imul(h1^ch,2654435761);h2=Math.imul(h2^ch,1597334677);}
@@ -1092,7 +1088,7 @@ function render(){
   var app=$('#app');app.innerHTML=html;app.className=tabs?'':(S.sub&&S.sub.n==='workout'?'nobar wk':'nobar');$('#tabs').innerHTML=tabs;
   drawSheet();
   window.scrollTo(0,same?y:0);
-  wlSync();
+  wlSync();schAll();pillDraw();runSave();
 }
 
 function drawSheet(){
@@ -1183,7 +1179,7 @@ var A={
   eye:function(a,el){var i=$('#pwd');var show=i.type==='password';i.type=show?'text':'password';el.innerHTML=show?I.eyeoff:I.eye},
   tab:function(a){S.tab=a;S.sub=null;render()},
   back:function(){S.sub=null;render()},
-  logout:function(){S.tr=null;if(CLOUD){NET.dirty=NET.dirty||!!NET.snap;flush().then(function(){cloudLogout()});return}setSession(null);S.user=null;S.sub=null;S.dr=null;S.rest=null;S.tab='home';S.stage=null;render()},
+  logout:function(){S.tr=null;S.rest=null;runClear();if(CLOUD){NET.dirty=NET.dirty||!!NET.snap;flush().then(function(){cloudLogout()});return}setSession(null);S.user=null;S.sub=null;S.dr=null;S.rest=null;S.tab='home';S.stage=null;render()},
   filter:function(a){S.filter=a;render()},
   goFilter:function(a){S.filter=a;S.q='';S.tab='clients';S.sub=null;render()},
   client:function(a){S.sub={n:'client',id:a};S.tab='clients';render();
@@ -1289,11 +1285,12 @@ var A={
     if(!S.rest)return;
     var d=(parseInt(a,10)||15);S.rest.end+=d*1000;S.rest.total+=d;
     var left=Math.ceil((S.rest.end-Date.now())/1000);
-    if(left<=0){S.rest=null;var b=$('#restbar');if(b)b.hidden=true;toast('Rest over. Next set!');return}
+    if(left<=0){S.rest=null;var b=$('#restbar');if(b)b.hidden=true;toast('Rest over. Next set!');schAll();runSave();return}
     var t=$('#restTime');if(t)t.textContent=mmss(left);
     var f=$('#restFill');if(f)f.style.width=Math.min(100,100*left/S.rest.total)+'%';
+    schAll();runSave();
   },
-  restSkip:function(){S.rest=null;var b=$('#restbar');if(b)b.hidden=true},
+  restSkip:function(){S.rest=null;var b=$('#restbar');if(b)b.hidden=true;schAll();runSave()},
   askLeave:function(){openSheet({type:'confirm',title:'Leave this workout?',body:'Keep it to continue later from the Today tab, or discard everything you entered.',ok:'Discard',danger:true,cancel:'Keep it',act:'doLeave',arg:''})},
   doLeave:function(){delete DB.drafts[S.user.id];delete DB.live[S.user.id];save();S.dr=null;S.rest=null;S.sub=null;closeSheet();render()},
   finish:function(){var any=S.dr.ex.some(function(e){return e.sets.some(function(s){return s.done})});if(!any){toast('Tick at least one set as done');return}openSheet({type:'finish',tpl:false})},
@@ -1535,41 +1532,58 @@ function chainOut(a){
   if(c){try{c.threshold.value=-22;c.knee.value=12;c.ratio.value=10;c.attack.value=.002;c.release.value=.15}catch(e){}var mk=a.createGain();mk.gain.value=1.28;g.connect(c);c.connect(mk);mk.connect(a.destination)}else g.connect(a.destination);
   a.__m=g;return g;
 }
+var TND=null,TAT=0;
 function tn(o){
   var a=audio();if(!a)return;
   try{
-    var t=a.currentTime+(o.at||0),d=o.dur,osc=a.createOscillator(),g=a.createGain(),att=o.att||.008,v=o.vol;
+    var t=a.currentTime+(o.at||0)+TAT,d=o.dur,osc=a.createOscillator(),g=a.createGain(),att=o.att||.008,v=o.vol;
     osc.type=o.type||'sine';osc.frequency.setValueAtTime(o.f,t);if(o.f2)osc.frequency.exponentialRampToValueAtTime(o.f2,t+d);
     g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+att);
     if(!o.decay)g.gain.setValueAtTime(v,t+Math.max(att+.005,d-.06));
     g.gain.exponentialRampToValueAtTime(.0001,t+d);
     var n=osc;if(o.lp){var f=a.createBiquadFilter();f.type='lowpass';f.frequency.value=o.lp;osc.connect(f);n=f}
-    n.connect(g);g.connect(chainOut(a));
+    n.connect(g);g.connect(TND||chainOut(a));
     if(o.vib){var l=a.createOscillator(),lg=a.createGain();l.frequency.value=o.vib[0];lg.gain.value=o.vib[1];l.connect(lg);lg.connect(osc.frequency);l.start(t);l.stop(t+d+.05)}
     osc.start(t);osc.stop(t+d+.05);
   }catch(e){}
 }
-function bellTone(f,d){[[1,1],[2.76,.45],[5.4,.22],[8.93,.1]].forEach(function(p,i){tn({f:f*p[0],dur:d/(1+i*.45),vol:.9*p[1],decay:1,att:.003})})}
-var SND={
-  digital:{n:'Digital',d:'Sharp sports-watch beep',
-    short:function(){tn({type:'triangle',f:1760,dur:.16,vol:.95});tn({f:3520,dur:.16,vol:.3})},
-    long:function(){tn({type:'triangle',f:1760,dur:.5,vol:.95});tn({f:3520,dur:.5,vol:.28});tn({type:'triangle',f:2349,at:.5,dur:.8,vol:1});tn({f:4698,at:.5,dur:.8,vol:.28})}},
-  bell:{n:'Bell',d:'Clear, ringing ding',
-    short:function(){bellTone(1480,.55)},long:function(){bellTone(880,2)}},
-  whistle:{n:'Whistle',d:'Cuts through gym noise',
-    short:function(){tn({f:2900,f2:2750,dur:.17,vol:.9,vib:[34,110]})},
-    long:function(){tn({f:2900,f2:2500,dur:1,vol:.95,vib:[34,120]});tn({f:5800,f2:5000,dur:1,vol:.15,vib:[34,200]})}},
-  chime:{n:'Chime',d:'Bright, friendly notes',
-    short:function(){tn({f:1976,dur:.35,vol:.9,decay:1,att:.004});tn({f:3952,dur:.25,vol:.25,decay:1,att:.004})},
-    long:function(){[1047,1319,1568].forEach(function(f,i){tn({f:f,at:i*.16,dur:.5,vol:.8,decay:1,att:.004})});tn({f:2093,at:.48,dur:1.1,vol:.95,decay:1,att:.004});tn({f:4186,at:.48,dur:.8,vol:.2,decay:1,att:.004})}},
-  horn:{n:'Horn',d:'Deep and very loud',
-    short:function(){tn({type:'sawtooth',f:330,dur:.2,vol:.8,lp:1400})},
-    long:function(){tn({type:'sawtooth',f:220,dur:1.15,vol:.85,lp:1000});tn({type:'sawtooth',f:223,dur:1.15,vol:.6,lp:1000})}}
-};
-function sndCur(){var id=S.user&&S.user.profile&&S.user.profile.snd;return SND[id]?id:'digital'}
-function playSnd(kind,id){try{SND[id||sndCur()][kind]()}catch(e){}}
-function beepShort(){try{if(window.__onBeep)window.__onBeep('short')}catch(e){}playSnd('short');buzz(70)}
-function beepLong(){try{if(window.__onBeep)window.__onBeep('long')}catch(e){}playSnd('long');buzz([700])}
+var SND={chime:{
+  short:function(){tn({f:1976,dur:.35,vol:.9,decay:1,att:.004});tn({f:3952,dur:.25,vol:.25,decay:1,att:.004})},
+  long:function(){[1047,1319,1568].forEach(function(f,i){tn({f:f,at:i*.16,dur:.5,vol:.8,decay:1,att:.004})});tn({f:2093,at:.48,dur:1.1,vol:.95,decay:1,att:.004});tn({f:4186,at:.48,dur:.8,vol:.2,decay:1,att:.004})}}};
+function playSnd(kind){try{SND.chime[kind]()}catch(e){}}
+/* Beeps are queued on the audio clock ahead of time, so they still sound if the page is in the background and its normal timers are slowed down. */
+var SCH={bus:null,items:[],to:[]};
+function schCancel(){try{if(SCH.bus){SCH.bus.gain.value=0;SCH.bus.disconnect()}}catch(e){}SCH.bus=null;SCH.items=[];SCH.to.forEach(clearTimeout);SCH.to=[]}
+function schNear(){var n=Date.now();return !!SCH.bus&&SCH.items.some(function(h){return Math.abs(h.at-n)<450})}
+function schWant(){
+  var w=[],now=Date.now();
+  if(S.rest&&S.rest.end>now){var e=S.rest.end;[3,2,1].forEach(function(x){if(x<=S.rest.total&&e-x*1000>=now-250)w.push({at:e-x*1000,kind:'short'})});w.push({at:e,kind:'long'})}
+  var tr=S.tr;
+  if(tr&&!tr.done&&!tr.paused){var t=tr.end,hz=now+600000,n=0;
+    for(var i=tr.i;i<tr.plan.length&&t<hz&&n<40;i++){if(i>tr.i)t+=tr.plan[i].d*1000;var d=tr.plan[i].d;
+      [3,2,1].forEach(function(x){
+        if(x>d)return;var at=t-x*1000;
+        if(i===tr.i){tr.b=tr.b||{};if(at<now-250){tr.b[x]=1;return}if(tr.b[x])return}   // already sounded (or passed): never repeat after a pause
+        if(at>=now-250)w.push({at:at,kind:'short'})});
+      if(t>now+20)w.push({at:t,kind:'long'});n+=4}}
+  return w;
+}
+function schAll(){
+  var a=AC;if(!a||a.state!=='running'||!S.user){if(SCH.bus)schCancel();return}
+  var want=schWant(),now=Date.now();
+  SCH.items=SCH.items.filter(function(h){return h.at>now-1500});
+  var live=SCH.items.filter(function(h){return h.at>now+20});
+  var same=function(x,y){return x.kind===y.kind&&Math.abs(x.at-y.at)<40};
+  var miss=want.filter(function(w){return !SCH.items.some(function(h){return same(h,w)})});
+  var stale=live.filter(function(h){return !want.some(function(w){return same(h,w)})});
+  if(stale.length){schCancel();miss=want}
+  if(!miss.length)return;
+  if(!SCH.bus){var b=a.createGain();b.connect(chainOut(a));SCH.bus=b}
+  miss.forEach(function(w){var d=Math.max(0,(w.at-now)/1000);TND=SCH.bus;TAT=d;try{SND.chime[w.kind]()}catch(e){}TND=null;TAT=0;SCH.items.push(w);
+    if(window.__onBeep)SCH.to.push(setTimeout(function(){try{window.__onBeep(w.kind)}catch(e){}},d*1000))});
+}
+function beepShort(){if(schNear()){buzz(70);return}try{if(window.__onBeep)window.__onBeep('short')}catch(e){}playSnd('short');buzz(70)}
+function beepLong(){if(schNear()){buzz([700]);return}try{if(window.__onBeep)window.__onBeep('long')}catch(e){}playSnd('long');buzz([700])}
 document.addEventListener('pointerdown',function(){audio()},{passive:true});   // browsers only allow sound after a tap
 
 /* keep the screen on while a live workout is open */
@@ -1614,9 +1628,7 @@ function vTimer(){
   '<div class="ttile hot" role="button" tabindex="0" data-act="tmStart" data-arg="tabata"><div class="tt">4:00</div><span class="tp">'+I.playf+'</span><div class="tn">Classic Tabata</div><div class="ts">20 s on · 10 s off<br>8 sets</div></div>'+
   '<button class="ttile add" data-act="tmNew"><span class="plus">'+I.plus+'</span><div class="tn">Custom timer</div><div class="ts">Build your own</div></button>'+
   l.map(function(t){return '<div class="ttile" role="button" tabindex="0" data-act="tmStart" data-arg="'+esc(t.id)+'"><div class="tt">'+tmFmt(tmTotal(t))+'</div><span class="tp">'+I.playf+'</span><button class="tedit" data-act="tmEdit" data-arg="'+esc(t.id)+'" aria-label="Edit '+esc(t.name)+'">'+I.pen+'</button><div class="tn">'+esc(t.name)+'</div><div class="ts">'+t.work+' s work'+(t.rest?' · '+t.rest+' s rest':'')+'<br>'+t.cycles+' set'+(t.cycles===1?'':'s')+(t.sets>1?' × '+t.sets+' rounds':'')+'</div></div>'}).join('')+
-  '</div>'+(l.length?'':'<p class="muted" style="margin-top:18px;font-size:12.5px;text-align:center">Timers you save show up here for next time.</p>')+
-  '<div class="sec-title"><h2>Beep sound</h2></div><div class="card" style="padding:8px 16px"><p class="muted" style="font-size:12px;margin:8px 0 4px">Used for the timers and the rest timer in your workout. Turn the phone volume up.</p>'+
-  Object.keys(SND).map(function(k){var on=sndCur()===k;return '<div class="srow'+(on?' on':'')+'"><button class="sname" data-act="sndPick" data-arg="'+k+'" aria-pressed="'+on+'"><span class="sdot">'+(on?I.check:'')+'</span><span><b>'+SND[k].n+'</b><small>'+SND[k].d+'</small></span></button><button class="sbtn" data-act="sndTest" data-arg="'+k+'|short">Short</button><button class="sbtn" data-act="sndTest" data-arg="'+k+'|long">Long</button></div>'}).join('')+'</div>';
+  '</div>'+(l.length?'':'<p class="muted" style="margin-top:18px;font-size:12.5px;text-align:center">Timers you save show up here for next time.</p>');
 }
 function vTmEdit(){
   var t=S.tm;
@@ -1664,8 +1676,6 @@ function tmTick(){
   var o=$('#tmTot');if(o)o.textContent=tmFmt(tmRemain(tr));
 }
 Object.assign(A,{
-  sndPick:function(a){if(!SND[a])return;S.user.profile=S.user.profile||{};S.user.profile.snd=a;save();render();playSnd('short',a);setTimeout(function(){playSnd('long',a)},750)},
-  sndTest:function(a){var p=a.split('|');playSnd(p[1],p[0])},
   tmNew:function(){S.tm={isNew:true,id:uid(),name:'',pre:5,work:40,rest:20,cycles:6,sets:1,rsets:0,cool:0};S.sub={n:'tmedit'};render()},
   tmEdit:function(a){var t=tmList().filter(function(x){return x.id===a})[0];if(!t)return;S.tm=Object.assign({isNew:false},t);S.sub={n:'tmedit'};render()},
   tmBack:function(){S.tm=null;S.sub=null;render()},
@@ -1680,17 +1690,87 @@ Object.assign(A,{
     S.user.profile.timers=l;save();S.tm=null;S.sub=null;toast('Timer saved');render()},
   tmDel:function(a){openSheet({type:'confirm',title:'Delete this timer?',body:'It is removed from your saved timers.',ok:'Delete',danger:true,act:'tmDelGo',arg:a})},
   tmDelGo:function(a){S.user.profile.timers=tmList().filter(function(x){return x.id!==a});save();S.tm=null;S.sub=null;closeSheet();toast('Timer deleted');render()},
-  tmPause:function(){var tr=S.tr;if(!tr||tr.done)return;if(tr.paused){tr.paused=false;tr.end=Date.now()+tr.left}else{tr.left=Math.max(0,tr.end-Date.now());tr.paused=true}render()},
+  tmPause:function(){var tr=S.tr;if(!tr||tr.done)return;if(tr.paused){tr.paused=false;tr.end=Date.now()+tr.left}else{tr.left=Math.max(0,tr.end-Date.now());tr.paused=true;tr.b=tr.b||{};[3,2,1].forEach(function(x){if(x>=tr.left/1000)tr.b[x]=1})}render()},
   tmNext:function(){if(S.tr)tmGoTo(S.tr.i+1)},
   tmPrev:function(){var tr=S.tr;if(!tr)return;var el=tr.plan[tr.i].d*1000-tmLeftMs(tr);tmGoTo(el>2500?tr.i:Math.max(0,tr.i-1))},
   tmStop:function(){S.tr=null;S.sub=null;render()},
+  tmOpen:function(){if(S.tr){S.sub={n:'tmrun'};render()}},
   tmAgain:function(){if(S.tr)tmBegin(S.tr.t)}
 });
 document.addEventListener('keydown',function(ev){if((ev.key==='Enter'||ev.key===' ')&&ev.target.classList&&ev.target.classList.contains('ttile')&&ev.target.getAttribute('role')==='button'){ev.preventDefault();ev.target.click()}});
 
+/* ---------- keep a running workout / timer alive ---------- */
+function runSave(){
+  if(!S.user)return;
+  try{
+    var o={uid:S.user.id},any=false,now=Date.now();
+    if(S.rest&&S.rest.end>now){o.rest={end:S.rest.end,total:S.rest.total};any=true}
+    if(S.tr&&!S.tr.done){o.tr={t:S.tr.t,i:S.tr.i,end:S.tr.end,paused:S.tr.paused,left:S.tr.left};any=true}
+    o.wk=!!(S.dr&&S.sub&&S.sub.n==='workout');o.onTr=!!(S.tr&&!S.tr.done&&S.sub&&S.sub.n==='tmrun');
+    if(any||o.wk)localStorage.setItem(RUN_KEY,JSON.stringify(o));else localStorage.removeItem(RUN_KEY);
+  }catch(e){}
+}
+function runClear(){try{localStorage.removeItem(RUN_KEY)}catch(e){}}
+// After the app is closed and opened again: the timers carry on from where the clock says they should be.
+function runLoad(u){
+  try{
+    var o=JSON.parse(localStorage.getItem(RUN_KEY));if(!o||o.uid!==u.id)return;var now=Date.now();
+    if(o.rest&&o.rest.end>now)S.rest={end:o.rest.end,total:o.rest.total};
+    if(o.tr&&o.tr.t){
+      var plan=tmPlan(o.tr.t),tr={t:o.tr.t,plan:plan,i:Math.min(o.tr.i,plan.length-1),end:o.tr.end,paused:!!o.tr.paused,left:o.tr.left||0,b:{},done:false};
+      if(!tr.paused){while(now>=tr.end){if(tr.i>=plan.length-1){tr.done=true;break}tr.i++;tr.end+=plan[tr.i].d*1000}}
+      S.tr=tr;
+    }
+    if(o.onTr&&S.tr)S.sub={n:'tmrun'};
+    else if(o.wk&&u.role==='client'&&DB.drafts[u.id]){S.dr=DB.drafts[u.id];S.sub={n:'workout'}}
+  }catch(e){}
+}
+function pillState(){
+  if(!S.user)return null;
+  var onTr=S.sub&&S.sub.n==='tmrun',onWk=S.sub&&S.sub.n==='workout';
+  if(S.tr&&!S.tr.done&&!onTr)return {act:'tmOpen',txt:'Timer · '+S.tr.plan[S.tr.i].l+' '+tmLeftTxt(S.tr)};
+  if(S.dr&&S.user.role==='client'&&!onWk)return {act:'resume',txt:isPast(S.dr)?'Past workout in progress':'Workout running · '+mmss((Date.now()-S.dr.startedAt)/1000)};
+  return null;
+}
+function pillDraw(){
+  var el=$('#livepill');if(!el){el=document.createElement('button');el.id='livepill';document.body.appendChild(el)}
+  var p=pillState();
+  if(!p){el.className='';el.innerHTML='';el.removeAttribute('data-act');return}
+  el.className='on'+($('#tabs').innerHTML?'':' low');el.setAttribute('data-act',p.act);el.innerHTML='<i></i><span>'+esc(p.txt)+'</span><b>Open</b>';
+}
+function pillTick(){var p=pillState(),s=$('#livepill span');if(p&&s&&s.textContent!==p.txt)s.textContent=p.txt}
+// Back button: never leaves the app by accident while something is running.
+var NAV={exit:false};
+function backHandler(){
+  var u=S.user,sn=S.sub&&S.sub.n;
+  if(S.sheet){closeSheet();return}
+  if(sn==='workout'){S.sub=null;S.tab='workout';render();toast('Workout is still running');return}
+  if(sn==='tmrun'){S.sub=null;render();toast('Timer is still running');return}
+  if(sn==='tmedit'){A.tmBack();return}
+  if(sn==='tpl'){A.backTpl();return}
+  if(sn==='prog'){A.backProg();return}
+  if(S.sub){S.sub=null;render();return}
+  var home=u&&u.role==='admin'?'home':'profile';
+  if(u&&S.tab!==home){S.tab=home;render();return}
+  if(u&&((S.tr&&!S.tr.done)||S.dr)){toast('A workout or timer is running. Use the Home button to leave it running.');return}
+  if(NAV.exit)return 'exit';
+  NAV.exit=true;setTimeout(function(){NAV.exit=false},2000);toast('Press back again to exit');
+}
+try{history.replaceState({fw:0},'');history.pushState({fw:1},'')}catch(e){}
+window.addEventListener('popstate',function(){
+  if(NAV.leaving)return;
+  var r=backHandler();
+  if(r==='exit'){NAV.leaving=true;try{history.back()}catch(e){}}
+  else{try{history.pushState({fw:1},'')}catch(e){}}
+});
+document.addEventListener('visibilitychange',function(){
+  if(document.visibilityState==='hidden')runSave();
+  else{tmTick();schAll();pillDraw()}
+});
+window.addEventListener('pagehide',runSave);
 /* timers */
 setInterval(function(){
-  tmTick();
+  tmTick();pillTick();
   if(S.dr&&S.sub&&S.sub.n==='workout'){var e=$('#elapsed');if(e)e.textContent=mmss((Date.now()-S.dr.startedAt)/1000)}
   if(S.rest){
     var left=Math.ceil((S.rest.end-Date.now())/1000),bar=$('#restbar');
@@ -1803,7 +1883,7 @@ function applyLoad(d){
 function cloudBegin(d,toastMsg){
   applyLoad(d);
   var u=userBy(d.me.id);S.role=u.role;
-  enter(u);
+  enter(u);runLoad(u);if(S.sub||S.tr||S.rest)render();
   if(toastMsg)toast(toastMsg);
   startPolling();cacheWrite();
 }
@@ -1827,7 +1907,7 @@ function cloudLogout(msg,skipRemote){
   tokSet(null);cacheClear();
   if(t&&!skipRemote)api('fw_logout',{p_token:t}).catch(function(){});
   DB={users:[],programs:[],templates:[],logs:[],live:{},drafts:{},custom:[]};
-  S.user=null;S.sub=null;S.dr=null;S.rest=null;S.tr=null;S.tab='home';S.stage=null;S.pending=null;S.sheet=null;
+  S.user=null;S.sub=null;S.dr=null;S.rest=null;S.tr=null;runClear();S.tab='home';S.stage=null;S.pending=null;S.sheet=null;
   syncUi();render();
   if(msg)setTimeout(function(){showErr('loginErr',msg)},50);
 }
@@ -1899,6 +1979,7 @@ function cloudBoot(){
     if(u){
       S.role=u.role;S.user=u;S.tab='profile';
       if(DB.drafts[u.id])S.dr=DB.drafts[u.id];
+      runLoad(u);
       render();startPolling();
       if(NET.dirty)flush();
       else if(!S.dr)cloudLoad().then(function(d){
@@ -1921,7 +2002,7 @@ loadQuote();
 if(CLOUD){cloudBoot()}else{
 load();
 var sid=getSession();
-if(sid){var su=userBy(sid);if(su&&su.active&&!su.must){S.user=su;S.tab=su.role==='admin'?'home':'profile';S.role=su.role;if(su.role==='client'&&DB.drafts[su.id]){S.dr=DB.drafts[su.id]}}}
+if(sid){var su=userBy(sid);if(su&&su.active&&!su.must){S.user=su;S.tab=su.role==='admin'?'home':'profile';S.role=su.role;if(su.role==='client'&&DB.drafts[su.id]){S.dr=DB.drafts[su.id]}runLoad(su)}}
 render();
 }
 if(RESTORED)setTimeout(function(){toast('Restored your earlier clients and workouts')},700);
