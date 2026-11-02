@@ -196,6 +196,14 @@
   .ens3{grid-column:1/-1;display:grid;grid-template-columns:78px 1fr 1fr;gap:10px}
   .ens3 label{display:block;margin:0;min-width:0}
   .ens3 label span{display:block;font-size:10.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px}
+  .wktabs{display:flex;gap:8px;overflow-x:auto;padding:14px 2px 6px;margin:0 -2px;-webkit-overflow-scrolling:touch}
+  .wktab{flex:none;height:38px;padding:0 16px;border-radius:19px;border:0;background:var(--soft);color:var(--violet);font:inherit;font-weight:700;font-size:13.5px}
+  .wktab.on{background:linear-gradient(135deg,#ff7a1a,#ff3d8b 55%,#8b5cf6);color:#fff}
+  .dcard{margin-top:12px;padding:0;overflow:hidden}
+  .dcard-h{display:flex;align-items:center;gap:10px;padding:14px 14px 14px 16px;width:100%;border:0;background:none;text-align:left;font:inherit;color:inherit}
+  .dcard-h .t{flex:1;min-width:0}.dcard-h .t b{display:block;font-size:15px}.dcard-h .t span{font-size:12.5px;color:var(--muted)}
+  .dcard-b{padding:0 16px 14px;border-top:1px solid var(--line)}
+  .dcard-f{display:flex;justify-content:flex-end;padding-top:12px}
   .phase{margin-top:40px}
   .phase-h{display:flex;align-items:center;gap:10px}
   .phase-h .chip{height:30px;font-size:12.5px;padding:0 14px}
@@ -848,13 +856,13 @@ function vAddClient(){
 }
 
 function progSummary(p){var ph=pPhases(p),tw=pWeeks(p),ex=0;ph.forEach(function(x){x.days.forEach(function(d){ex+=d.ex.length})});
-  return (tw?tw+' week'+(tw===1?'':'s')+' · ':'')+(ph.length>1?ph.length+' phases':ph[0].days.length+' days · '+ex+' exercises')}
+  return (tw?tw+' week'+(tw===1?'':'s')+' · ':'')+(tw?'':ph[0].days.length+' days · ')+ex+' exercises'}
 function vPrograms(){
   return '<div class="top"><div><div class="eyebrow">Your library</div><h1 class="hello">Programs</h1></div><button class="btn sm" data-act="newProg">'+I.plus+'New</button></div>'+
   '<div class="stack">'+(DB.programs.length?DB.programs.map(function(p){
     var n=clients().filter(function(c){return c.program===p.id}).length;
     return '<div class="card"><div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start"><div style="min-width:0"><h3 style="font-size:16px;font-weight:700">'+esc(p.name)+'</h3><div class="muted" style="font-size:12.5px;margin-top:4px">'+progSummary(p)+'</div></div><span class="chip org">'+n+' client'+(n===1?'':'s')+'</span></div>'+
-    '<div class="muted" style="font-size:12.5px;margin-top:14px;line-height:1.7">'+(function(){var ph=pPhases(p);return ph.map(function(x,i){return (ph.length>1?'<b style="color:var(--ink)">'+esc(phaseLabel(ph,i))+'</b> · ':'')+x.days.map(function(d){return esc(d.name)}).join(' · ')}).join('<br>')})()+'</div>'+
+    '<div class="muted" style="font-size:12.5px;margin-top:14px;line-height:1.7">'+(function(){var ph=pPhases(p);return ph.map(function(x,i){return (ph.length>1?'<b style="color:var(--ink)">'+esc(x.name||phaseLabel(ph,i))+'</b> · ':'')+x.days.map(function(d){return esc(d.name)}).join(' · ')}).join('<br>')})()+'</div>'+
     '<div class="addrow"><button class="btn sm soft" style="flex:1" data-act="editProg" data-arg="'+p.id+'">Edit</button><button class="btn sm ghost" data-act="dupProg" data-arg="'+p.id+'" aria-label="Make a copy">'+I.copy+'Copy</button><button class="btn sm" style="flex:1" data-act="assignProg" data-arg="'+p.id+'">Assign</button></div></div>'}).join(''):'<div class="empty card"><b>No programs yet</b>Create your first one to assign it to clients.</div>')+'</div>';
 }
 function exEditor(path,items){
@@ -865,20 +873,29 @@ function exEditor(path,items){
     '<div class="ens3"><label><span>Sets</span><input class="num" inputmode="numeric" data-b="'+b+'.sets" data-n="i" value="'+esc(e.sets)+'" aria-label="Sets"></label><label><span>Reps</span><input class="num" data-b="'+b+'.reps" value="'+esc(e.reps)+'" placeholder="9-12" aria-label="Reps"></label><label><span>Rest</span><input class="num" data-b="'+b+'.rest" value="'+esc(e.rest||'')+'" placeholder="60" aria-label="Rest between sets"></label></div></div>'}).join('')+
     (items.length>1&&(path==='te.ex'||/phases\.0\.days\.0\.ex$/.test(path))?'<p class="hint" style="text-align:left;margin-top:14px">Hold an exercise, then slide up or down to reorder.<br>Rest is in seconds, or type "1 min". For a range like 60-90, the timer starts at the first number.</p>':'');
 }
-function totalText(ph){var t=0;ph.forEach(function(x){t+=(+x.weeks||0)});return t?t+' week'+(t===1?'':'s')+' in total':'No fixed length. The plan repeats every week.'}
-function refreshPhases(){if(!S.pe)return;[].forEach.call(document.querySelectorAll('[data-plabel]'),function(el){el.textContent=phaseLabel(S.pe.phases,+el.getAttribute('data-plabel'))});var t=$('#pwTotal');if(t)t.textContent=totalText(S.pe.phases)}
+function totalText(ph){var t=ph.length;return t+' week'+(t===1?'':'s')+' in total'}
+function refreshPhases(){}
+function weekTabs(n,sel,act,extra){var h='<div class="wktabs" role="tablist">';for(var i=0;i<n;i++)h+='<button class="wktab'+(i===sel?' on':'')+'" role="tab" aria-selected="'+(i===sel)+'" data-act="'+act+'" data-arg="'+i+'">Week '+(i+1)+'</button>';return h+(extra||'')+'</div>'}
+function dayTitle(d,di){var n=(d.name||'').trim();return /^day\s*\d+$/i.test(n)||!n?'Day '+(di+1):/^day\s*\d+\s*[-–:]/i.test(n)?n:'Day '+(di+1)+' - '+n}
+function dayRO(d,di,open,act){
+  return '<div class="card dcard"><button class="dcard-h" data-act="'+act+'" data-arg="'+di+'" aria-expanded="'+open+'"><div class="t"><b>'+esc(dayTitle(d,di))+'</b><span>'+d.ex.length+' exercise'+(d.ex.length===1?'':'s')+'</span></div><span class="xarrow">'+(open?I.chevu:I.chevd)+'</span></button>'+
+  (open?'<div class="dcard-b">'+d.ex.map(function(e){return '<div style="display:flex;justify-content:space-between;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)"><span style="font-weight:600">'+esc(e.ex)+'</span><span class="muted" style="white-space:nowrap">'+e.sets+' × '+esc(e.reps)+(e.rest?' · '+esc(fmtRest(e.rest)):'')+'</span></div>'}).join('')+'<div class="dcard-f"><button class="xarrow" data-act="'+act+'" data-arg="'+di+'" aria-label="Collapse">'+I.chevu+'</button></div></div>':'')+'</div>'}
 function vProgEdit(){
-  var pe=S.pe;
+  var pe=S.pe,wi=Math.min(pe.wk||0,pe.phases.length-1),ph=pe.phases[wi];pe.open=pe.open||{};
+  var add='<button class="wktab" style="background:var(--card);border:1.5px dashed var(--line);color:var(--ink)" data-act="weekAdd" aria-label="Add a week">+ Add week</button>';
   return subHead(pe.isNew?'New program':'Edit program','backProg','<button class="btn sm" data-act="saveProg">Save</button>')+
   '<label class="lbl">Program name</label><div class="field"><input id="pname" data-b="pe.name" placeholder="e.g. Fat Loss, 12 weeks" value="'+esc(pe.name)+'"></div>'+
-  '<p class="muted" id="pwTotal" style="font-size:12.5px;margin:16px 2px 0">'+totalText(pe.phases)+'</p>'+
-  pe.phases.map(function(ph,pi){
-    return '<section class="phase"><div class="phase-h"><span class="chip org" data-plabel="'+pi+'">'+esc(phaseLabel(pe.phases,pi))+'</span><div style="flex:1"></div><button class="icon" data-act="phaseDup" data-arg="'+pi+'" aria-label="Copy this phase">'+I.copy+'</button>'+(pe.phases.length>1?'<button class="icon" data-act="phaseDel" data-arg="'+pi+'" aria-label="Remove this phase">'+I.trash+'</button>':'')+'</div>'+
-    '<div class="phase-meta"><div><label class="lbl" style="margin-top:18px">Phase name (optional)</label><div class="field"><input data-b="pe.phases.'+pi+'.name" placeholder="e.g. Strength block" value="'+esc(ph.name||'')+'"></div></div><div><label class="lbl" style="margin-top:18px">Weeks</label><div class="field"><input inputmode="numeric" data-b="pe.phases.'+pi+'.weeks" data-n="i" placeholder="2" value="'+esc(ph.weeks||'')+'" aria-label="Weeks in this phase"></div></div></div>'+
-    ph.days.map(function(d,di){return '<div class="card day"><div class="day-h"><div class="field"><input data-b="pe.phases.'+pi+'.days.'+di+'.name" value="'+esc(d.name)+'" placeholder="Day name" aria-label="Day name"></div>'+(ph.days.length>1?'<button class="icon" data-act="dayDel" data-arg="'+pi+'|'+di+'" aria-label="Remove day">'+I.trash+'</button>':'')+'</div>'+exEditor('pe.phases.'+pi+'.days.'+di+'.ex',d.ex)+'<button class="btn sm soft block" style="margin-top:16px" data-act="pick" data-arg="pe.phases.'+pi+'.days.'+di+'.ex">'+I.plus+'Add exercise</button></div>'}).join('')+
-    '<button class="btn sm ghost block" style="margin-top:20px" data-act="dayAdd" data-arg="'+pi+'">'+I.plus+'Add training day</button></section>'}).join('')+
-  '<button class="btn ghost block" style="margin-top:40px" data-act="phaseAdd">'+I.plus+'Add next phase (copy of the last one)</button>'+
-  (pe.isNew?'':'<button class="btn danger block" style="margin-top:26px" data-act="askDelProg" data-arg="'+pe.id+'">'+I.trash+'Delete program</button>');
+  weekTabs(pe.phases.length,wi,'peWk',add)+
+  '<p class="muted" style="font-size:12.5px;margin:6px 2px 0">'+totalText(pe.phases)+'</p>'+
+  '<section class="phase" style="margin-top:18px"><div class="phase-h"><span class="chip org">Week '+(wi+1)+'</span><div style="flex:1"></div>'+(wi>0?'<button class="btn sm ghost" data-act="weekCopyPrev" aria-label="Copy days from previous week">Copy last week</button>':'')+'<button class="icon" data-act="phaseDup" data-arg="'+wi+'" aria-label="Duplicate this week">'+I.copy+'</button>'+(pe.phases.length>1?'<button class="icon" data-act="phaseDel" data-arg="'+wi+'" aria-label="Remove this week">'+I.trash+'</button>':'')+'</div>'+
+  '<label class="lbl" style="margin-top:14px">Week label (optional)</label><div class="field"><input data-b="pe.phases.'+wi+'.name" placeholder="e.g. Strength block" value="'+esc(ph.name||'')+'"></div>'+
+  ph.days.map(function(d,di){var k=wi+'_'+di,op=!!pe.open[k],path='pe.phases.'+wi+'.days.'+di+'.ex';
+    return '<div class="card dcard"><button class="dcard-h" data-act="peDay" data-arg="'+di+'" aria-expanded="'+op+'"><div class="t"><b>'+esc(dayTitle(d,di))+'</b><span>'+d.ex.length+' exercise'+(d.ex.length===1?'':'s')+'</span></div><span class="xarrow">'+(op?I.chevu:I.chevd)+'</span></button>'+
+    (op?'<div class="dcard-b"><label class="lbl" style="margin-top:14px">Day name</label><div class="field"><input data-b="pe.phases.'+wi+'.days.'+di+'.name" value="'+esc(d.name)+'" placeholder="e.g. Chest & Triceps" aria-label="Day name"></div>'+exEditor(path,d.ex)+
+      '<button class="btn sm soft block" style="margin-top:16px" data-act="pick" data-arg="'+path+'">'+I.plus+'Add exercise</button>'+
+      '<div class="dcard-f" style="justify-content:space-between;align-items:center">'+(ph.days.length>1?'<button class="lnk" data-act="dayDel" data-arg="'+wi+'|'+di+'">Delete day</button>':'<span></span>')+'<button class="xarrow" data-act="peDay" data-arg="'+di+'" aria-label="Collapse">'+I.chevu+'</button></div></div>':'')+'</div>'}).join('')+
+  '<button class="btn sm ghost block" style="margin-top:20px" data-act="dayAdd" data-arg="'+wi+'">'+I.plus+'Add training day</button></section>'+
+  (pe.isNew?'':'<button class="btn danger block" style="margin-top:36px" data-act="askDelProg" data-arg="'+pe.id+'">'+I.trash+'Delete program</button>');
 }
 
 function vSettings(){
@@ -892,6 +909,13 @@ function vSettings(){
 }
 
 /* ---------- client ---------- */
+function myProg(u,nd){
+  var p=progBy(u.program);if(!p)return '';var ph=pPhases(p),tw=pWeeks(p),n=tw||1,cur=nd&&nd.wk?nd.wk-1:0;
+  S.pv=S.pv||{};if(S.pv.wk==null||S.pv.wk>=n)S.pv.wk=Math.min(cur,n-1);S.pv.open=S.pv.open||{};
+  var w=S.pv.wk,days=phaseAt(p,w+1).ph.days||[];
+  return '<div class="sec-title"><h2>My program</h2></div><div class="card" style="padding-bottom:16px"><b>'+esc(p.name)+'</b>'+(tw>1?weekTabs(n,w,'pvWk'):'')+
+   '<div style="margin-top:4px">'+days.map(function(d,di){return dayRO(d,di,!!S.pv.open[di],'pvDay')}).join('')+'</div></div>';
+}
 function vWorkoutTab(){
   var u=S.user,ls=logsOf(u.id),nd=nextDay(u),tp=tplsOf(u.id),wk=weekDays(),dr=DB.drafts[u.id];
   var wkLogs=ls.filter(function(l){return daysSince(l.date)<7}),vol=wkLogs.reduce(function(a,l){return a+volume(l)},0);
@@ -902,6 +926,7 @@ function vWorkoutTab(){
     '<div style="margin-top:18px;display:flex;flex-direction:column;gap:4px">'+nd.d.ex.slice(0,4).map(function(e){return '<div style="display:flex;justify-content:space-between;gap:10px;padding:12px 0;border-top:1px solid var(--line)"><span style="font-weight:600">'+esc(e.ex)+'</span><span class="muted">'+e.sets+' × '+esc(e.reps)+(e.rest?' · '+esc(fmtRest(e.rest)):'')+'</span></div>'}).join('')+(nd.d.ex.length>4?'<div class="muted" style="font-size:12.5px;padding-top:10px">+ '+(nd.d.ex.length-4)+' more exercises</div>':'')+'</div>'+
     '<button class="btn block" style="margin-top:26px;min-height:50px;font-size:15px" data-act="startProg">'+I.play+'Start workout</button></div>'
   :'<div class="hero" style="margin-top:24px"><h2 style="font-size:18px;font-weight:700">No program yet</h2><p class="muted" style="margin-top:10px">Your trainer will assign one. Meanwhile you can log your own workout.</p></div>')+
+  myProg(u,nd)+
   '<div class="card" style="margin-top:22px"><div style="display:flex;justify-content:space-between;align-items:baseline"><h2 style="font-size:15px;font-weight:700">This week</h2><span class="muted" style="font-size:12.5px">'+wkLogs.length+' workout'+(wkLogs.length===1?'':'s')+' · '+nf(vol)+' kg</span></div><div class="week">'+wk.map(function(d){return '<div><i class="'+(dates[d.k]?'on':'')+'">'+(dates[d.k]?I.check:'')+'</i><span class="'+(d.t?'t':'')+'">'+d.lbl+'</span></div>'}).join('')+'</div></div>'+
   '<div class="sec-title"><h2>Start your own</h2></div><div class="card"><div class="tplchips">'+tp.map(function(t){return '<button class="btn sm soft" data-act="startTpl" data-arg="'+t.id+'">'+I.play+esc(t.name)+'</button>'}).join('')+'<button class="btn sm ghost" data-act="startFree">'+I.plus+'Empty workout</button></div>'+(tp.length?'':'<p class="muted" style="font-size:12.5px;margin-top:14px">Make your own templates in the Templates tab.</p>')+'</div>'+
   '<div class="sec-title"><h2>Missed a day?</h2></div><div class="card"><p class="muted" style="font-size:13px">Worked out but could not log it? Add it for the day it happened.</p><button class="btn ghost block" style="margin-top:18px" data-act="pastOpen">'+I.plus+'Log a past workout</button></div>';
@@ -1211,21 +1236,26 @@ var A={
   assignProg:function(a){openSheet({type:'assign',pid:a,sel:clients().filter(function(c){return c.program===a&&c.active}).map(function(c){return c.id})})},
   asgToggle:function(a){var s=S.sheet.sel,i=s.indexOf(a);if(i>=0)s.splice(i,1);else s.push(a);drawSheet()},
   asgGo:function(){var s=S.sheet;s.sel.forEach(function(id){var u=userBy(id);if(u.program!==s.pid){u.program=s.pid;u.week=1}});save();var n=s.sel.length;closeSheet();toast('Assigned to '+n+' client'+(n===1?'':'s'));render()},
-  newProg:function(){S.pe={isNew:true,id:uid(),name:'',phases:[{name:'',weeks:'',days:[{name:'Day 1',ex:[]}]}]};S.sub={n:'prog'};render()},
-  editProg:function(a){var p=progBy(a);S.pe={isNew:false,id:p.id,name:p.name,phases:clone(pPhases(p)).map(function(x){x.weeks=x.weeks||'';x.name=x.name||'';return x})};S.sub={n:'prog'};render()},
+  newProg:function(){S.pe={isNew:true,id:uid(),name:'',wk:0,open:{'0_0':1},phases:[{name:'',weeks:1,days:[{name:'Day 1',ex:[]}]}]};S.sub={n:'prog'};render()},
+  editProg:function(a){var p=progBy(a),ph=[];pPhases(p).forEach(function(x){var n=Math.max(1,+x.weeks||1);for(var k=0;k<n;k++){var c=clone(x);c.weeks=1;c.name=c.name||'';ph.push(c)}});
+    S.pe={isNew:false,id:p.id,name:p.name,wk:0,open:{},phases:ph};S.sub={n:'prog'};render()},
   backProg:function(){S.sub=null;S.pe=null;render()},
-  dayAdd:function(a){var d=S.pe.phases[+a].days;d.push({name:'Day '+(d.length+1),ex:[]});render()},
-  dayDel:function(a){var p=a.split('|');S.pe.phases[+p[0]].days.splice(+p[1],1);render()},
-  phaseAdd:function(){var l=clone(S.pe.phases[S.pe.phases.length-1]);l.name='';l.weeks='';S.pe.phases.push(l);render();toast('Phase added. Set its weeks and change the reps.')},
-  phaseDup:function(a){var c=clone(S.pe.phases[+a]);c.name='';c.weeks='';S.pe.phases.splice(+a+1,0,c);render();toast('Phase copied')},
-  phaseDel:function(a){if(S.pe.phases.length>1){S.pe.phases.splice(+a,1);render()}},
+  peWk:function(a){S.pe.wk=+a;render()},
+  peDay:function(a){var k=S.pe.wk+'_'+a;S.pe.open[k]=!S.pe.open[k];render()},
+  weekAdd:function(){var l=clone(S.pe.phases[S.pe.phases.length-1]);l.name='';l.weeks=1;S.pe.phases.push(l);S.pe.wk=S.pe.phases.length-1;render();toast('Week added. It starts as a copy of the last week.')},
+  weekCopyPrev:function(){var w=S.pe.wk;if(w<1)return;var c=clone(S.pe.phases[w-1]);c.name=S.pe.phases[w].name;S.pe.phases[w]=c;S.pe.open={};render();toast('Copied from week '+w)},
+  dayAdd:function(a){var d=S.pe.phases[+a].days;d.push({name:'Day '+(d.length+1),ex:[]});S.pe.open[a+'_'+(d.length-1)]=1;render()},
+  dayDel:function(a){var p=a.split('|');S.pe.phases[+p[0]].days.splice(+p[1],1);S.pe.open={};render()},
+  phaseDup:function(a){var c=clone(S.pe.phases[+a]);c.name='';S.pe.phases.splice(+a+1,0,c);S.pe.wk=+a+1;S.pe.open={};render();toast('Week copied')},
+  phaseDel:function(a){if(S.pe.phases.length>1){S.pe.phases.splice(+a,1);S.pe.wk=Math.max(0,Math.min(S.pe.wk,S.pe.phases.length-1));S.pe.open={};render()}},
+  pvWk:function(a){S.pv=S.pv||{};S.pv.wk=+a;S.pv.open={};render()},
+  pvDay:function(a){S.pv=S.pv||{};S.pv.open=S.pv.open||{};S.pv.open[a]=!S.pv.open[a];render()},
   dupProg:function(a){var p=progBy(a);if(!p)return;var c=clone(p);c.id=uid();c.name=p.name+' (copy)';DB.programs.push(c);save();toast('Copied. Tap Edit on the copy to change it.');render()},
   weekStep:function(a){var p=a.split('|'),c=userBy(p[0]),pr=c&&progBy(c.program);if(!pr)return;var tw=pWeeks(pr);if(!tw)return;
     c.week=Math.max(1,Math.min(tw,(c.week||1)+(+p[1])));save();toast(c.name.split(' ')[0]+' is now on Week '+c.week);render()},
   saveProg:function(){var p=S.pe;if(!p.name.trim()){toast('Give the program a name');return}
-    if(p.phases.length>1&&p.phases.some(function(x){return !(+x.weeks>0)})){toast('Set how many weeks each phase lasts');return}
     if(p.phases.some(function(x){return x.days.some(function(d){return !d.ex.length})})){toast('Every day needs at least one exercise');return}
-    var out={id:p.id,name:p.name.trim(),phases:p.phases.map(function(x){return {name:(x.name||'').trim(),weeks:Math.max(0,+x.weeks||0),days:x.days.map(function(d){return {name:(d.name||'Day').trim(),ex:d.ex.map(function(e){return {ex:e.ex,g:e.g,sets:Math.max(1,+e.sets||1),reps:String(e.reps||'10').trim(),rest:String(e.rest||'').trim()}})}})}})};
+    var out={id:p.id,name:p.name.trim(),phases:p.phases.map(function(x){return {name:(x.name||'').trim(),weeks:p.phases.length>1?1:0,days:x.days.map(function(d){return {name:(d.name||'Day').trim(),ex:d.ex.map(function(e){return {ex:e.ex,g:e.g,sets:Math.max(1,+e.sets||1),reps:String(e.reps||'10').trim(),rest:String(e.rest||'').trim()}})}})}})};
     var i=DB.programs.findIndex(function(x){return x.id===out.id});if(i>=0)DB.programs[i]=out;else DB.programs.push(out);
     save();S.sub=null;S.pe=null;toast('Program saved');render()},
   askDelProg:function(a){openSheet({type:'confirm',title:'Delete this program?',body:'Clients using it will be left without a program. Their logged workouts stay.',ok:'Delete',danger:true,act:'doDelProg',arg:a})},
