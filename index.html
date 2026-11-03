@@ -674,7 +674,15 @@ function gymProgram(){
   var S5=[['Back Squat','Legs'],['Leg Press','Legs'],['Bench Press','Chest'],['Seated Row','Back'],['Military Press','Shoulders'],['Curling','Arms']].map(function(e){return {ex:e[0],g:e[1],sets:4,reps:'3-5',rest:'2 min'}});
   return {id:'p_gym5',name:'Gymnasiumm 5-Week Plan',phases:[{name:'Base · 9–12 reps',weeks:2,days:days(false)},{name:'Heavier · 6–9 reps',weeks:2,days:days(true)},{name:'Strength · 3–5 reps',weeks:1,days:[{name:'Strength Day',ex:S5}]}]};
 }
-function ensureSample(){if(DB.gymAdded)return;DB.gymAdded=true;if(!DB.programs.some(function(p){return p.id==='p_gym5'}))DB.programs.push(gymProgram());save()}
+function cptProgram(){
+  var B=[[{"name":"Chest & Triceps","ex":[["Barbell Bench Press",3,"10","90 sec"],["Incline DB Press",3,"10-12","60 sec"],["Flat DB Press",3,"12","60 sec"],["Cable Crossover",3,"15","35-60 sec"],["Push-ups",2,"AMRAP","60 sec"],["Rope / Reverse Pushdown",3,"12","60 sec"],["Overhead Rope Extension",3,"12","60 sec"],["Bench Dips",2,"15","60 sec"]]},{"name":"Back & Biceps","ex":[["Deadlift",3,"8","120 sec"],["Pull up / Lat Pull Down",3,"10-12","60 sec"],["Seated Row",3,"10","60 sec"],["Bent Over Row",3,"12","60 sec"],["Straight Arm Pulldown",3,"15","35-60 sec"],["EZ Curl",3,"10","60 sec"],["Incline DB Curl",3,"12","60 sec"],["Hammer Curl",2,"15","60 sec"]]},{"name":"Shoulders & Core","ex":[["Seated DB Press",3,"10","90 sec"],["Lateral Raise",3,"15","60 sec"],["Cable OH Press",3,"15","60 sec"],["Face Pull",3,"15","60 sec"],["Crunches",3,"15","35 sec"],["Pallof Press",3,"12/side","35 sec"],["Dead Bug",3,"10","35 sec"]]},{"name":"Legs & Core","ex":[["Back Squat",3,"10","120 sec"],["Leg Press",3,"10","90 sec"],["Split Squat",3,"12","60 sec"],["Leg Ext",3,"12","60 sec"],["Leg Curl",3,"15","60 sec"],["Plank",3,"35 sec","35 sec"],["Cable Wood Chop",3,"12/side","35 sec"]]},{"name":"Upper Body & Arms","ex":[["Bench Press + Seated Row",3,"12","60 sec"],["Latpull Down + OH Press",3,"12","60 sec"],["Pec Fly + Reverse Fly",3,"12","60 sec"],["Front Raise + Pull Down",3,"15","35-60 sec"],["Push up + Curling",3,"12","60 sec"]]}],[{"name":"Chest & Triceps","ex":[["Barbell Bench Press",3,"6-8","90 sec"],["Incline DB Press",3,"6-8","60 sec"],["Flat DB Press",3,"6-8","60 sec"],["Cable Crossover",3,"6-8","35-60 sec"],["Push-ups",2,"AMRAP","60 sec"],["Rope / Reverse Pushdown",3,"6-8","60 sec"],["Overhead Rope Extension",3,"6-8","60 sec"],["Bench Dips",2,"6-8","60 sec"]]},{"name":"Back & Biceps","ex":[["Deadlift",3,"6-8","120 sec"],["Pull up / Lat Pull Down",3,"6-8","60 sec"],["Seated Row",3,"6-8","60 sec"],["Bent Over Row",3,"6-8","60 sec"],["Straight Arm Pulldown",3,"6-8","35-60 sec"],["EZ Curl",3,"6-8","60 sec"],["Incline DB Curl",3,"6-8","60 sec"],["Hammer Curl",2,"6-8","60 sec"]]},{"name":"Shoulders & Core","ex":[["Seated DB Press",3,"6-8","90 sec"],["Lateral Raise",3,"8-10","60 sec"],["Cable OH Press",3,"8-10","60 sec"],["Face Pull",3,"8-10","60 sec"],["Crunches",3,"8-10","35 sec"],["Pallof Press",3,"6-8/side","35 sec"],["Dead Bug",3,"6-8","35 sec"]]},{"name":"Legs & Core","ex":[["Back Squat",3,"6-8","120 sec"],["Leg Press",3,"6-8","90 sec"],["Split Squat",3,"6-8","60 sec"],["Leg Ext",3,"6-8","60 sec"],["Leg Curl",3,"8-10","60 sec"],["Plank",3,"35 sec","35 sec"],["Cable Wood Chop",3,"6-8","35 sec"]]},{"name":"Upper Body & Arms","ex":[["Bench Press + Seated Row",3,"6-8","60 sec"],["Latpull Down + OH Press",3,"6-8","60 sec"],["Pec Fly + Reverse Fly",3,"6-8","60 sec"],["Front Raise + Pull Down",3,"8-10","35-60 sec"],["Push up + Curling",3,"6-8","60 sec"]]}],[{"name":"Chest & Triceps","ex":[["Barbell Bench Press",3,"8-10","90 sec"],["Incline DB Press",3,"8-10","60 sec"],["Flat DB Press",3,"8-10","60 sec"],["Cable Crossover",3,"8-10","35-60 sec"],["Push-ups",2,"AMRAP","60 sec"],["Rope / Reverse Pushdown",3,"8-10","60 sec"],["Overhead Rope Extension",3,"8-10","60 sec"],["Bench Dips",2,"8-10","60 sec"]]},{"name":"Back & Biceps","ex":[["Deadlift",3,"8-10","120 sec"],["Pull up / Lat Pull Down",3,"8-10","60 sec"],["Seated Row",3,"8-10","60 sec"],["Bent Over Row",3,"8-10","60 sec"],["Straight Arm Pulldown",3,"8-10","35-60 sec"],["EZ Curl",3,"8-10","60 sec"],["Incline DB Curl",3,"8-10","60 sec"],["Hammer Curl",2,"8-10","60 sec"]]},{"name":"Shoulders & Core","ex":[["Seated DB Press",3,"8-10","90 sec"],["Lateral Raise",3,"8-10","60 sec"],["Cable OH Press",3,"8-10","60 sec"],["Face Pull",3,"8-10","60 sec"],["Crunches",3,"8-10","35 sec"],["Pallof Press",3,"8-10/side","35 sec"],["Dead Bug",3,"8-10","35 sec"]]},{"name":"Legs & Core","ex":[["Back Squat",3,"8-10","120 sec"],["Leg Press",3,"8-10","90 sec"],["Split Squat",3,"8-10","60 sec"],["Leg Ext",3,"8-10","60 sec"],["Leg Curl",3,"8-10","60 sec"],["Plank",3,"35 sec","35 sec"],["Cable Wood Chop",3,"8-10","35 sec"]]},{"name":"Upper Body & Arms","ex":[["Bench Press + Seated Row",3,"8-10","60 sec"],["Latpull Down + OH Press",3,"8-10","60 sec"],["Pec Fly + Reverse Fly",3,"8-10","60 sec"],["Front Raise + Pull Down",3,"8-10","35-60 sec"],["Push up + Curling",3,"8-10","60 sec"]]}]];
+  var G={"Chest & Triceps": "Chest", "Back & Biceps": "Back", "Shoulders & Core": "Shoulders", "Legs & Core": "Legs", "Upper Body & Arms": "Upper body"};
+  function mk(b){return b.map(function(d){return {name:d.name,ex:d.ex.map(function(e){return {ex:e[0],g:G[d.name]||'',sets:e[1],reps:e[2],rest:e[3]}})}})}
+  return {id:'p_cpt',name:'Hypertrophy CPT',phases:[{name:'10-12 reps',weeks:2,days:mk(B[0])},{name:'6-8 reps',weeks:2,days:mk(B[1])},{name:'8-10 reps',weeks:2,days:mk(B[2])}]};
+}
+function ensureSample(){var ch=false;if(!DB.gymAdded){DB.gymAdded=true;ch=true;if(!DB.programs.some(function(p){return p.id==='p_gym5'}))DB.programs.push(gymProgram())}
+  if(!DB.cptAdded){DB.cptAdded=true;ch=true;if(!DB.programs.some(function(p){return p.id==='p_cpt'}))DB.programs.push(cptProgram())}
+  if(ch)save()}
 // One-time recovery: the previous version of the demo kept its data under another key. Bring over everything the person added or changed.
 var RESTORED=0;
 function migrateV2(){
@@ -1859,7 +1867,7 @@ function api(fn,args,keep,tries){
 }
 var SKIP_U={id:1,role:1,pw:1,must:1};
 function snapOf(){
-  var o={users:{},programs:{},templates:{},logs:{},drafts:{},live:{},custom:JSON.stringify(DB.custom||[]),flags:JSON.stringify({gymAdded:!!DB.gymAdded})};
+  var o={users:{},programs:{},templates:{},logs:{},drafts:{},live:{},custom:JSON.stringify(DB.custom||[]),flags:JSON.stringify({gymAdded:!!DB.gymAdded,cptAdded:!!DB.cptAdded})};
   DB.users.forEach(function(u){var c={};Object.keys(u).forEach(function(k){if(!SKIP_U[k])c[k]=JSON.stringify(u[k])});o.users[u.id]=c});
   DB.programs.forEach(function(p){o.programs[p.id]=JSON.stringify(p)});
   DB.templates.forEach(function(t){o.templates[t.id]=JSON.stringify(t)});
@@ -1927,11 +1935,12 @@ function flush(keep){
 }
 function applyLoad(d){
   var f=d.flags||{};
-  DB={users:d.users||[],programs:d.programs||[],templates:d.templates||[],logs:d.logs||[],live:d.live||{},drafts:d.drafts||{},custom:d.custom||[],gymAdded:!!f.gymAdded};
+  DB={users:d.users||[],programs:d.programs||[],templates:d.templates||[],logs:d.logs||[],live:d.live||{},drafts:d.drafts||{},custom:d.custom||[],gymAdded:!!f.gymAdded,cptAdded:!!f.cptAdded};
   var me=d.me;
   NET.snap=snapOf();   // what the server has right now; anything added below counts as a change to send
   NET.since=(d.now||Date.now())-10000;
   if(me&&me.role==='admin'&&!DB.gymAdded){DB.gymAdded=true;if(!DB.programs.some(function(p){return p.id==='p_gym5'}))DB.programs.push(gymProgram());NET.dirty=true}
+  if(me&&me.role==='admin'&&!DB.cptAdded){DB.cptAdded=true;if(!DB.programs.some(function(p){return p.id==='p_cpt'}))DB.programs.push(cptProgram());NET.dirty=true}
   if(NET.dirty)sched(300);
 }
 function cloudBegin(d,toastMsg){
