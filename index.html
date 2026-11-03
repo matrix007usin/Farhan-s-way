@@ -1119,7 +1119,7 @@ function render(){
   var app=$('#app');app.innerHTML=html;app.className=tabs?'':(S.sub&&S.sub.n==='workout'?'nobar wk':'nobar');$('#tabs').innerHTML=tabs;
   drawSheet();
   window.scrollTo(0,same?y:0);
-  wlSync();schAll();pillDraw();runSave();
+  wlSync();schAll();pillDraw();runSave();peSave();
 }
 
 function drawSheet(){
@@ -1450,7 +1450,7 @@ document.addEventListener('input',function(ev){
   if(b){var v=el.value,n=el.getAttribute('data-n');
     if(n==='i')v=v===''?'':Math.max(0,parseInt(v,10)||0);
     if(n==='f')v=v===''?'':Math.max(0,parseFloat(v)||0);
-    setPath(S,b,v);if(b.indexOf('dr.')===0)persistDraft();if(b.indexOf('tm.')===0)tmSum();if(/^pe\.phases\.\d+\.weeks$/.test(b))refreshPhases();return}
+    setPath(S,b,v);if(b.indexOf('dr.')===0)persistDraft();if(b.indexOf('pe.')===0)peSave();if(b.indexOf('tm.')===0)tmSum();if(/^pe\.phases\.\d+\.weeks$/.test(b))refreshPhases();return}
   var lv=el.getAttribute&&el.getAttribute('data-live');
   if(lv==='q'){S.q=el.value;$('#clientList').innerHTML=clientListHtml()}
   if(lv==='pq'){S.sheet.q=el.value;$('#pickList').innerHTML=pickList(el.value)}
@@ -1754,9 +1754,19 @@ function runSave(){
     if(any||o.wk)localStorage.setItem(RUN_KEY,JSON.stringify(o));else localStorage.removeItem(RUN_KEY);
   }catch(e){}
 }
+var PE_KEY='fw_pe_v1';
+function peSave(){
+  if(!S.user)return;
+  try{if(S.pe&&S.sub&&S.sub.n==='prog')localStorage.setItem(PE_KEY,JSON.stringify({uid:S.user.id,pe:S.pe,tab:S.tab,at:Date.now()}));else localStorage.removeItem(PE_KEY)}catch(e){}
+}
+function peLoad(u){
+  try{var o=JSON.parse(localStorage.getItem(PE_KEY));if(!o||o.uid!==u.id||!o.pe||u.role!=='admin')return;
+    S.pe=o.pe;S.sub={n:'prog'};S.tab=o.tab||'programs'}catch(e){}
+}
 function runClear(){try{localStorage.removeItem(RUN_KEY)}catch(e){}}
 // After the app is closed and opened again: the timers carry on from where the clock says they should be.
 function runLoad(u){
+  peLoad(u);
   try{
     var o=JSON.parse(localStorage.getItem(RUN_KEY));if(!o||o.uid!==u.id)return;var now=Date.now();
     if(o.rest&&o.rest.end>now)S.rest={end:o.rest.end,total:o.rest.total};
@@ -1808,10 +1818,10 @@ window.addEventListener('popstate',function(){
   else{try{history.pushState({fw:1},'')}catch(e){}}
 });
 document.addEventListener('visibilitychange',function(){
-  if(document.visibilityState==='hidden')runSave();
+  if(document.visibilityState==='hidden'){runSave();peSave()}
   else{tmTick();schAll();pillDraw()}
 });
-window.addEventListener('pagehide',runSave);
+window.addEventListener('pagehide',function(){runSave();peSave()});
 /* timers */
 setInterval(function(){
   tmTick();pillTick();
