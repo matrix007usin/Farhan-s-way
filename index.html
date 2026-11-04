@@ -834,7 +834,7 @@ function clientListHtml(){
     if(f==='paused')return !c.active;
     return true});
   if(!cl.length)return '<div class="empty"><b>No clients here</b>'+(q?'Try a different name or number.':'Nothing matches this filter.')+'</div>';
-  return cl.map(function(c){var p=progBy(c.program);return '<button class="row" data-act="client" data-arg="'+c.id+'">'+av(c)+'<div class="grow"><div class="nm">'+esc(c.name)+'</div><div class="sb">'+(p?esc(p.name):'No program')+'</div></div><div class="end">'+statusChip(c)+'</div></button>'}).join('');
+  return cl.map(function(c){var p=progBy(c.program);return '<button class="row" data-act="client" data-arg="'+c.id+'">'+av(c)+'<div class="grow"><div class="nm">'+esc(c.name)+'</div><div class="sb">'+(p?esc(p.name):'No program')+' · '+esc(c.id)+'</div>'+(/^\d{10}$/.test(c.id)?'':'<div class="sb" style="color:#c2410c;font-weight:600">Check this mobile number</div>')+'</div><div class="end">'+statusChip(c)+'</div></button>'}).join('');
 }
 
 function progWeekHtml(c,p){
@@ -1371,8 +1371,9 @@ var FORMS={
   login:function(f){
     var id=f.uid.value.trim(),pw=f.pwd.value;
     if(!id||!pw)return showErr('loginErr','Enter your ID and password.');
-    if(CLOUD)return cloudLogin(id.toLowerCase(),pw,'loginErr');
-    var u=userBy(id);
+    var ni=normId(id);id=ni.id;
+    if(CLOUD)return cloudLogin(ni.id,pw,'loginErr',ni.alt);
+    var u=userBy(id)||(ni.alt&&userBy(ni.alt));
     if(!u||u.role!==S.role||u.pw!==pwHash(pw))return showErr('loginErr',S.role==='admin'?'Wrong admin ID or password.':'Wrong mobile number or password. Check with your trainer.');
     if(!u.active)return showErr('loginErr','Your access is paused. Please contact your trainer.');
     if(u.must){S.pending=u;S.stage='force';render();return}
@@ -1952,9 +1953,19 @@ function cloudBegin(d,toastMsg){
 }
 function cloudLoad(){return api('fw_load',{p_token:NET.tok,p_days:21})}
 function netMsg(e){return e&&e.http?'Server said no ('+e.http+'): '+String(e.message||'').slice(0,90):'Cannot reach the server. Check your signal and try again.'}
-function cloudLogin(id,pw,errId){
+function normId(raw){
+  var t=String(raw||'').trim().replace(/[\u0966-\u096F]/g,function(c){return c.charCodeAt(0)-0x0966}).replace(/[\u0660-\u0669]/g,function(c){return c.charCodeAt(0)-0x0660});
+  if(/[a-z]/i.test(t))return {id:t.toLowerCase(),alt:null};
+  var d=t.replace(/\D/g,''),n=d;
+  if(n.length===12&&n.indexOf('91')===0)n=n.slice(2);
+  else if(n.length===11&&n.charAt(0)==='0')n=n.slice(1);
+  else if(n.length===14&&n.indexOf('0091')===0)n=n.slice(4);
+  return {id:n,alt:d!==n?d:null};
+}
+function cloudLogin(id,pw,errId,alt){
   showErr(errId,'Signing in…');
   api('fw_login',{p_id:id,p_pw:pw,p_role:S.role}).then(function(r){
+    if(r&&!r.ok&&r.err==='bad'&&alt){return cloudLogin(alt,pw,errId)}
     if(!r||!r.ok){
       return showErr(errId,r&&r.err==='locked'?'Too many wrong attempts. Please wait 15 minutes and try again.':r&&r.err==='paused'?'Your access is paused. Please contact your trainer.':(S.role==='admin'?'Wrong admin ID or password.':'Wrong mobile number or password. Check with your trainer.'));
     }
