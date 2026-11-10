@@ -313,7 +313,7 @@
   .ttile.add{border-style:dashed;border-color:#D9C8F0;background:var(--soft);align-items:center;justify-content:center;text-align:center;gap:6px}
   .ttile.add .plus{width:52px;height:52px;border-radius:50%;background:var(--surface);color:var(--violet);display:grid;place-items:center;box-shadow:0 8px 18px -10px rgba(124,58,237,.5)}
   .ttile.add .plus svg{width:24px;height:24px}
-  .ttile .tedit{position:absolute;top:14px;right:58px;width:38px;height:38px;border:0;border-radius:50%;background:transparent;color:var(--muted);display:grid;place-items:center}
+  .ttile .tedit{position:absolute;bottom:8px;right:8px;width:34px;height:34px;border:0;border-radius:50%;background:transparent;color:var(--muted);display:grid;place-items:center}
   .ttile .tedit svg{width:17px;height:17px}
   #livepill{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(78px + env(safe-area-inset-bottom,0px));z-index:25;display:none;align-items:center;gap:10px;max-width:calc(100% - 28px);padding:11px 14px 11px 16px;border:0;border-radius:99px;background:#1B1530;color:#fff;font-size:13px;font-weight:700;box-shadow:0 14px 30px -12px rgba(0,0,0,.55);font-variant-numeric:tabular-nums;white-space:nowrap}
   #livepill.on{display:flex}#livepill.low{bottom:calc(16px + env(safe-area-inset-bottom,0px))}
@@ -1613,11 +1613,15 @@ function schWant(){
   if(S.rest&&S.rest.end>now){var e=S.rest.end;[3,2,1].forEach(function(x){if(x<=S.rest.total&&e-x*1000>=now-250)w.push({at:e-x*1000,kind:'short'})});w.push({at:e,kind:'long'})}
   var tr=S.tr;
   if(tr&&!tr.done&&!tr.paused){var t=tr.end,hz=now+600000,n=0;
-    for(var i=tr.i;i<tr.plan.length&&t<hz&&n<40;i++){if(i>tr.i)t+=tr.plan[i].d*1000;var d=tr.plan[i].d;
+    for(var i=tr.i;i<tr.plan.length&&t<hz&&n<300;i++){if(i>tr.i)t+=tr.plan[i].d*1000;var d=tr.plan[i].d;
       [3,2,1].forEach(function(x){
         if(x>d)return;var at=t-x*1000;
         if(i===tr.i){tr.b=tr.b||{};if(at<now-250){tr.b[x]=1;return}if(tr.b[x])return}   // already sounded (or passed): never repeat after a pause
         if(at>=now-250)w.push({at:at,kind:'short'})});
+      var cpi=tr.plan[i];
+      if(cpi.bp>0){var t0=t-d*1000;for(var k=1;k*cpi.bp<d-3&&t0+k*cpi.bp*1000<hz;k++){var pa=t0+k*cpi.bp*1000;
+        if(i===tr.i){tr.b=tr.b||{};if(pa<now-250){tr.b['p'+k]=1;continue}if(tr.b['p'+k])continue}
+        if(pa>=now-250){w.push({at:pa,kind:'short'});n++}}}
       if(t>now+20)w.push({at:t,kind:'long'});n+=4}}
   return w;
 }
@@ -1659,10 +1663,20 @@ document.addEventListener('visibilitychange',function(){if(document.visibilitySt
 /* ---------- timer tab: Tabata, custom interval timers, saved timers ---------- */
 var TABATA={id:'tabata',name:'Classic Tabata',pre:0,work:20,rest:10,cycles:8,sets:1,rsets:0,cool:0,keepEnd:1};
 var TMF=[['pre','Prepare','s',0,300,5,'p-pre'],['work','Work','s',1,3600,5,'p-work'],['rest','Rest','s',0,3600,5,'p-rest'],['cycles','Sets','',1,99,1,'p-work'],['sets','Rounds','',1,99,1,'p-cool'],['rsets','Rest between rounds','s',0,3600,5,'p-rs'],['cool','Cool down','s',0,3600,5,'p-cool']];
+var BOXING={id:'boxing',box:1,name:'Boxing timer',pre:10,work:180,rest:60,beep:10,bR:3,bC:1,cool:0};
+var TMFB=[['pre','Prepare','s',0,300,5,'p-pre'],['work','Work','s',1,3600,5,'p-work'],['rest','Rest','s',0,3600,5,'p-rest'],['beep','Beep every','s',0,600,1,'p-rs'],['bR','Rounds','',1,99,1,'p-work'],['bC','Cycles','',1,99,1,'p-cool'],['cool','Cool down','s',0,3600,5,'p-cool']];
+function tmFields(t){return t&&t.box?TMFB:TMF}
+function tmHint(f,v){return f==='beep'?(v>0?'every '+v+' s while working':'off'):tmFmt(v)}
+function boxCfg(){var p=S.user.profile=S.user.profile||{};return Object.assign({},BOXING,p.box||{})}
 var TMC={'p-pre':'#7C3AED','p-work':'#FF5A3C','p-rest':'#16A34A','p-rs':'#0E9F8E','p-cool':'#2563EB'};
 function tmList(){var p=S.user.profile=S.user.profile||{};return Array.isArray(p.timers)?p.timers:[]}
 function tmPlan(t){
   var L=[];if(t.pre>0)L.push({k:'pre',l:'Prepare',d:t.pre});else L.push({k:'lead',l:'Get ready',d:3});
+  if(t.box){
+    for(var cy=1;cy<=t.bC;cy++)for(var r=1;r<=t.bR;r++){L.push({k:'work',l:'Work',d:t.work,bp:t.beep>0?t.beep:0,r:r,cy:cy});if(t.rest>0&&!(cy===t.bC&&r===t.bR))L.push({k:'rest',l:'Rest',d:t.rest,r:r,cy:cy})}
+    if(t.cool>0)L.push({k:'cool',l:'Cool down',d:t.cool});
+    return L;
+  }
   for(var s=1;s<=t.sets;s++){
     for(var c=1;c<=t.cycles;c++){L.push({k:'work',l:'Work',d:t.work,c:c,s:s});if(t.rest>0&&(c<t.cycles||t.keepEnd))L.push({k:'rest',l:'Rest',d:t.rest,c:c,s:s})}   // no rest after the last set of a round (Classic Tabata keeps its closing rest so it stays 4:00)
     if(s<t.sets&&t.rsets>0)L.push({k:'rs',l:'Rest between rounds',d:t.rsets,s:s});
@@ -1672,33 +1686,34 @@ function tmPlan(t){
 }
 function tmTotal(t){return tmPlan(t).reduce(function(a,x){return a+(x.k==='lead'?0:x.d)},0)}
 function tmFmt(sec){sec=Math.max(0,Math.round(sec));var h=Math.floor(sec/3600),m=Math.floor(sec%3600/60),s=sec%60;return h?h+':'+z2(m)+':'+z2(s):m+':'+z2(s)}
-function tmInfo(t){var n=tmPlan(t).filter(function(x){return x.k!=='lead'}).length;return tmFmt(tmTotal(t))+' · '+n+' interval'+(n===1?'':'s')+' · '+t.sets+' round'+(t.sets===1?'':'s')}
+function tmInfo(t){if(t.box)return tmFmt(tmTotal(t))+' · '+t.bR+' round'+(t.bR===1?'':'s')+(t.bC>1?' × '+t.bC+' cycles':'');var n=tmPlan(t).filter(function(x){return x.k!=='lead'}).length;return tmFmt(tmTotal(t))+' · '+n+' interval'+(n===1?'':'s')+' · '+t.sets+' round'+(t.sets===1?'':'s')}
 function vTimer(){
   var l=tmList();
   return '<div class="top"><div><div class="eyebrow">Intervals and rest</div><h1 class="hello">Timer</h1></div></div>'+
   '<p class="muted" style="margin-top:8px;font-size:13px">Pick a timer and press play. You hear short beeps in the last 3 seconds and a long beep when time is over.</p>'+
   '<div class="tgrid">'+
   '<div class="ttile hot" role="button" tabindex="0" data-act="tmStart" data-arg="tabata"><div class="tt">4:00</div><span class="tp">'+I.playf+'</span><div class="tn">Classic Tabata</div><div class="ts">20 s on · 10 s off<br>8 sets</div></div>'+
+  (function(b){return '<div class="ttile" role="button" tabindex="0" data-act="tmStart" data-arg="boxing"><div class="tt">'+tmFmt(tmTotal(b))+'</div><span class="tp">'+I.playf+'</span><button class="tedit" data-act="tmEdit" data-arg="boxing" aria-label="Edit Boxing timer">'+I.pen+'</button><div class="tn">Boxing</div><div class="ts">'+tmFmt(b.work)+' work'+(b.rest?' · '+tmFmt(b.rest)+' rest':'')+(b.beep?' · beep '+b.beep+' s':'')+'<br>'+b.bR+' round'+(b.bR===1?'':'s')+(b.bC>1?' × '+b.bC+' cycles':'')+'</div></div>'})(boxCfg())+
   '<button class="ttile add" data-act="tmNew"><span class="plus">'+I.plus+'</span><div class="tn">Custom timer</div><div class="ts">Build your own</div></button>'+
   l.map(function(t){return '<div class="ttile" role="button" tabindex="0" data-act="tmStart" data-arg="'+esc(t.id)+'"><div class="tt">'+tmFmt(tmTotal(t))+'</div><span class="tp">'+I.playf+'</span><button class="tedit" data-act="tmEdit" data-arg="'+esc(t.id)+'" aria-label="Edit '+esc(t.name)+'">'+I.pen+'</button><div class="tn">'+esc(t.name)+'</div><div class="ts">'+t.work+' s work'+(t.rest?' · '+t.rest+' s rest':'')+'<br>'+t.cycles+' set'+(t.cycles===1?'':'s')+(t.sets>1?' × '+t.sets+' rounds':'')+'</div></div>'}).join('')+
   '</div>'+(l.length?'':'<p class="muted" style="margin-top:18px;font-size:12.5px;text-align:center">Timers you save show up here for next time.</p>');
 }
 function vTmEdit(){
   var t=S.tm;
-  return subHead(t.isNew?'Custom timer':'Edit timer','tmBack','')+
+  return subHead(t.box?'Boxing timer':t.isNew?'Custom timer':'Edit timer','tmBack','')+
   '<div class="tsum" id="tmSum">'+tmInfo(t)+'</div>'+
-  '<label class="lbl" for="tmName">Name</label><div class="field"><input id="tmName" data-b="tm.name" maxlength="28" placeholder="e.g. Arms burner" value="'+esc(t.name)+'" autocomplete="off"></div>'+
-  '<div class="card" style="margin-top:18px;padding:6px 18px">'+TMF.map(function(f){var v=t[f[0]];return '<div class="trow"><div class="tlab"><i class="tdot" style="background:'+TMC[f[6]]+'"></i><div>'+f[1]+(f[2]?'<small id="tmh_'+f[0]+'">'+tmFmt(v)+'</small>':'')+'</div></div><div class="tctl"><button class="tstep" data-act="tmStep" data-arg="'+f[0]+'|-'+f[5]+'" aria-label="Less '+f[1]+'">−</button><input class="tval" id="tm_'+f[0]+'" inputmode="numeric" data-b="tm.'+f[0]+'" data-n="i" data-act-change="tmClamp" data-arg="'+f[0]+'" value="'+v+'" aria-label="'+f[1]+(f[2]?' in seconds':'')+'"><button class="tstep" data-act="tmStep" data-arg="'+f[0]+'|'+f[5]+'" aria-label="More '+f[1]+'">+</button></div></div>'}).join('')+'</div>'+
+  (t.box?'':'<label class="lbl" for="tmName">Name</label><div class="field"><input id="tmName" data-b="tm.name" maxlength="28" placeholder="e.g. Arms burner" value="'+esc(t.name)+'" autocomplete="off"></div>')+
+  '<div class="card" style="margin-top:18px;padding:6px 18px">'+tmFields(t).map(function(f){var v=t[f[0]];return '<div class="trow"><div class="tlab"><i class="tdot" style="background:'+TMC[f[6]]+'"></i><div>'+f[1]+(f[2]?'<small id="tmh_'+f[0]+'">'+tmHint(f[0],v)+'</small>':'')+'</div></div><div class="tctl"><button class="tstep" data-act="tmStep" data-arg="'+f[0]+'|-'+f[5]+'" aria-label="Less '+f[1]+'">−</button><input class="tval" id="tm_'+f[0]+'" inputmode="numeric" data-b="tm.'+f[0]+'" data-n="i" data-act-change="tmClamp" data-arg="'+f[0]+'" value="'+v+'" aria-label="'+f[1]+(f[2]?' in seconds':'')+'"><button class="tstep" data-act="tmStep" data-arg="'+f[0]+'|'+f[5]+'" aria-label="More '+f[1]+'">+</button></div></div>'}).join('')+'</div>'+
   '<div class="err" id="tmErr" role="alert"></div>'+
   '<div class="btns2" style="margin-top:22px"><button class="btn ghost" data-act="tmSave">'+I.check+'Save</button><button class="btn" data-act="tmGo">'+I.playf+'Start</button></div>'+
-  (t.isNew?'':'<button class="btn danger block" style="margin-top:16px" data-act="tmDel" data-arg="'+esc(t.id)+'">'+I.trash+'Delete timer</button>');
+  (t.box?'<button class="btn ghost block" style="margin-top:16px" data-act="tmBoxReset">Reset to default</button>':t.isNew?'':'<button class="btn danger block" style="margin-top:16px" data-act="tmDel" data-arg="'+esc(t.id)+'">'+I.trash+'Delete timer</button>');
 }
-function tmSum(){var t=S.tm;if(!t)return;var e=$('#tmSum');if(e)e.textContent=tmInfo(t);TMF.forEach(function(f){if(f[2]){var h=$('#tmh_'+f[0]);if(h)h.textContent=tmFmt(t[f[0]])}})}
-function tmClampVal(f,v){var d=TMF.filter(function(x){return x[0]===f})[0];v=parseInt(v,10);if(isNaN(v))v=d[3];return Math.max(d[3],Math.min(d[4],v))}
+function tmSum(){var t=S.tm;if(!t)return;var e=$('#tmSum');if(e)e.textContent=tmInfo(t);tmFields(t).forEach(function(f){if(f[2]){var h=$('#tmh_'+f[0]);if(h)h.textContent=tmHint(f[0],t[f[0]])}})}
+function tmClampVal(f,v){var d=TMF.concat(TMFB).filter(function(x){return x[0]===f})[0];v=parseInt(v,10);if(isNaN(v))v=d[3];return Math.max(d[3],Math.min(d[4],v))}
 function vTmRun(){
   var tr=S.tr,cur=tr.plan[tr.i],cls=tr.done?'p-done':'p-'+cur.k,t=tr.t;
   if(tr.done)return '<div class="trun p-done"><div class="tr-top"><b>'+esc(t.name)+'</b><button class="tr-x" data-act="tmStop" aria-label="Close">'+I.x+'</button></div><div class="tr-mid"><div class="tr-ph">Time!</div><div class="tr-big" style="font-size:64px">Done</div><div class="tr-chips"><span>'+tmFmt(tmTotal(t))+' total</span><span>'+tmInfo(t).split(' · ').slice(1).join(' · ')+'</span></div></div><div class="tr-btns two"><button data-act="tmStop">Close</button><button class="main" data-act="tmAgain">Again</button></div></div>';
-  var chips=[];if(cur.c)chips.push('Set '+cur.c+' / '+t.cycles);if(cur.s&&t.sets>1)chips.push('Round '+cur.s+' / '+t.sets);
+  var chips=[];if(t.box){if(cur.r)chips.push('Round '+cur.r+' / '+t.bR);if(cur.cy&&t.bC>1)chips.push('Cycle '+cur.cy+' / '+t.bC)}else{if(cur.c)chips.push('Set '+cur.c+' / '+t.cycles);if(cur.s&&t.sets>1)chips.push('Round '+cur.s+' / '+t.sets)}
   return '<div class="trun '+cls+(tr.paused?' pause':'')+'"><div class="tr-top"><b>'+esc(t.name)+'</b><button class="tr-x" data-act="tmStop" aria-label="Stop timer">'+I.x+'</button></div>'+
   '<div class="tr-mid"><div class="tr-ph">'+(tr.paused?'Paused':esc(cur.l))+'</div><div class="tr-big" id="tmTime">'+tmLeftTxt(tr)+'</div><div class="tr-chips">'+chips.map(function(c){return '<span>'+c+'</span>'}).join('')+'</div></div>'+
   '<div class="tr-bar"><i id="tmFill" style="width:'+tmPct(tr)+'%"></i></div><div class="tr-tot">Total left <span id="tmTot">'+tmFmt(tmRemain(tr))+'</span></div>'+
@@ -1724,26 +1739,31 @@ function tmTick(){
   if(moved){render();return}
   var left=Math.ceil((tr.end-now)/1000);
   if(left<=3&&left>=1&&!tr.b[left]){tr.b[left]=1;beepShort()}
+  var cp=tr.plan[tr.i];
+  if(cp.bp>0){var el=cp.d*1000-(tr.end-now),k=Math.floor(el/(cp.bp*1000));
+    if(k>=1&&!tr.b['p'+k]){tr.b['p'+k]=1;if(el-k*cp.bp*1000<1500&&cp.d-k*cp.bp>3)beepShort()}}
   var a=$('#tmTime');if(a)a.textContent=tmFmt(left);
   var f=$('#tmFill');if(f)f.style.width=tmPct(tr)+'%';
   var o=$('#tmTot');if(o)o.textContent=tmFmt(tmRemain(tr));
 }
 Object.assign(A,{
   tmNew:function(){S.tm={isNew:true,id:uid(),name:'',pre:5,work:40,rest:20,cycles:6,sets:1,rsets:0,cool:0};S.sub={n:'tmedit'};render()},
-  tmEdit:function(a){var t=tmList().filter(function(x){return x.id===a})[0];if(!t)return;S.tm=Object.assign({isNew:false},t);S.sub={n:'tmedit'};render()},
+  tmBoxReset:function(){S.tm=Object.assign({isNew:false},BOXING);render();toast('Default values restored. Press Save to keep them.')},
+  tmEdit:function(a){if(a==='boxing'){S.tm=Object.assign({isNew:false},boxCfg());S.sub={n:'tmedit'};render();return}var t=tmList().filter(function(x){return x.id===a})[0];if(!t)return;S.tm=Object.assign({isNew:false},t);S.sub={n:'tmedit'};render()},
   tmBack:function(){S.tm=null;S.sub=null;render()},
   tmStep:function(a){var p=a.split('|'),f=p[0],t=S.tm;if(!t)return;t[f]=tmClampVal(f,(+t[f]||0)+parseInt(p[1],10));var i=$('#tm_'+f);if(i)i.value=t[f];tmSum()},
-  tmStart:function(a){var t=a==='tabata'?TABATA:tmList().filter(function(x){return x.id===a})[0];if(t)tmBegin(Object.assign({},t))},
-  tmGo:function(){var t=S.tm;if(!t)return;TMF.forEach(function(f){t[f[0]]=tmClampVal(f[0],t[f[0]])});if(!t.name||!t.name.trim())t.name='Custom timer';tmBegin(Object.assign({},t))},
+  tmStart:function(a){var t=a==='tabata'?TABATA:a==='boxing'?boxCfg():tmList().filter(function(x){return x.id===a})[0];if(t)tmBegin(Object.assign({},t))},
+  tmGo:function(){var t=S.tm;if(!t)return;tmFields(t).forEach(function(f){t[f[0]]=tmClampVal(f[0],t[f[0]])});if(!t.name||!t.name.trim())t.name='Custom timer';tmBegin(Object.assign({},t))},
   tmSave:function(){
-    var t=S.tm;if(!t)return;TMF.forEach(function(f){t[f[0]]=tmClampVal(f[0],t[f[0]])});
+    var t=S.tm;if(!t)return;tmFields(t).forEach(function(f){t[f[0]]=tmClampVal(f[0],t[f[0]])});
+    if(t.box){S.user.profile.box={pre:t.pre,work:t.work,rest:t.rest,beep:t.beep,bR:t.bR,bC:t.bC,cool:t.cool};save();S.tm=null;S.sub=null;toast('Boxing timer saved');render();return}
     var nm=(t.name||'').trim().replace(/\s+/g,' ');if(!nm){showErr('tmErr','Give your timer a name so you can find it later.');return}
     var rec={id:t.id,name:nm.slice(0,28),pre:t.pre,work:t.work,rest:t.rest,cycles:t.cycles,sets:t.sets,rsets:t.rsets,cool:t.cool};
     var l=tmList().slice(),i=-1;l.forEach(function(x,k){if(x.id===rec.id)i=k});if(i>=0)l[i]=rec;else l.push(rec);
     S.user.profile.timers=l;save();S.tm=null;S.sub=null;toast('Timer saved');render()},
   tmDel:function(a){openSheet({type:'confirm',title:'Delete this timer?',body:'It is removed from your saved timers.',ok:'Delete',danger:true,act:'tmDelGo',arg:a})},
   tmDelGo:function(a){S.user.profile.timers=tmList().filter(function(x){return x.id!==a});save();S.tm=null;S.sub=null;closeSheet();toast('Timer deleted');render()},
-  tmPause:function(){var tr=S.tr;if(!tr||tr.done)return;if(tr.paused){tr.paused=false;tr.end=Date.now()+tr.left}else{tr.left=Math.max(0,tr.end-Date.now());tr.paused=true;tr.b=tr.b||{};[3,2,1].forEach(function(x){if(x>=tr.left/1000)tr.b[x]=1})}render()},
+  tmPause:function(){var tr=S.tr;if(!tr||tr.done)return;if(tr.paused){tr.paused=false;tr.end=Date.now()+tr.left}else{tr.left=Math.max(0,tr.end-Date.now());tr.paused=true;tr.b=tr.b||{};[3,2,1].forEach(function(x){if(x>=tr.left/1000)tr.b[x]=1});var cq=tr.plan[tr.i];if(cq.bp>0){var ek=Math.floor((cq.d*1000-tr.left)/(cq.bp*1000));if(ek>=1)tr.b['p'+ek]=1}}render()},
   tmNext:function(){if(S.tr)tmGoTo(S.tr.i+1)},
   tmPrev:function(){var tr=S.tr;if(!tr)return;var el=tr.plan[tr.i].d*1000-tmLeftMs(tr);tmGoTo(el>2500?tr.i:Math.max(0,tr.i-1))},
   tmStop:function(){S.tr=null;S.sub=null;render()},
