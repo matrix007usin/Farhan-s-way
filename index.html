@@ -1607,7 +1607,7 @@ function playSnd(kind){try{SND.chime[kind]()}catch(e){}}
 /* Beeps are queued on the audio clock ahead of time, so they still sound if the page is in the background and its normal timers are slowed down. */
 var SCH={bus:null,items:[],to:[]};
 function schCancel(){try{if(SCH.bus){SCH.bus.gain.value=0;SCH.bus.disconnect()}}catch(e){}SCH.bus=null;SCH.items=[];SCH.to.forEach(clearTimeout);SCH.to=[]}
-function schNear(){var n=Date.now();return !!SCH.bus&&SCH.items.some(function(h){return Math.abs(h.at-n)<450})}
+function schNear(){if(document.visibilityState==='visible')return false;var n=Date.now();return !!SCH.bus&&SCH.items.some(function(h){return Math.abs(h.at-n)<450})}
 function schWant(){
   var w=[],now=Date.now();
   if(S.rest&&S.rest.end>now){var e=S.rest.end;[3,2,1].forEach(function(x){if(x<=S.rest.total&&e-x*1000>=now-250)w.push({at:e-x*1000,kind:'short'})});w.push({at:e,kind:'long'})}
@@ -1626,7 +1626,7 @@ function schWant(){
   return w;
 }
 function schAll(){
-  var a=AC;if(!a||a.state!=='running'||!S.user){if(SCH.bus)schCancel();return}
+  var a=AC;if(!a||a.state!=='running'||!S.user||document.visibilityState==='visible'){if(SCH.bus)schCancel();return}   // on screen: beeps are played live by the timer tick, so they can never drift; scheduled beeps are only for when the app is hidden
   var want=schWant(),now=Date.now();
   SCH.items=SCH.items.filter(function(h){return h.at>now-1500});
   var live=SCH.items.filter(function(h){return h.at>now+20});
@@ -1658,7 +1658,12 @@ function wlSync(){
     } else if(!WL.want&&WL.s){var l=WL.s;WL.s=null;try{l.release()}catch(e){}wlLabel()}
   }catch(e){WL.busy=false}
 }
-document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')wlSync()});
+document.addEventListener('visibilitychange',function(){
+  if(document.visibilityState==='visible'){wlSync();
+    var tr=S.tr;if(tr&&!tr.done&&!tr.paused){var now=Date.now(),rem=(tr.end-now)/1000,cp=tr.plan[tr.i];tr.b=tr.b||{};   // anything already sounded while hidden must not sound again
+      [3,2,1].forEach(function(x){if(rem<x)tr.b[x]=1});if(cp&&cp.bp>0){var kk=Math.floor((cp.d*1000-(tr.end-now))/(cp.bp*1000));for(var k=1;k<=kk;k++)tr.b['p'+k]=1}}
+    if(S.rest&&S.rest.end>Date.now()){S.rest.b=S.rest.b||{};var rr=(S.rest.end-Date.now())/1000;[3,2,1].forEach(function(x){if(rr<x)S.rest.b[x]=1})}}
+  try{schAll()}catch(e){}});
 
 /* ---------- timer tab: Tabata, custom interval timers, saved timers ---------- */
 var TABATA={id:'tabata',name:'Classic Tabata',pre:0,work:20,rest:10,cycles:8,sets:1,rsets:0,cool:0,keepEnd:1};
