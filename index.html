@@ -897,7 +897,10 @@ function dayRO(d,di,open,act,o){
   return '<div class="card dcard'+(o.done?' done':'')+'"><div class="dcard-h">'+tgl('tt')+'<b>'+esc(dayTitle(d,di))+'</b><span>'+(o.done?'Done · ':'')+d.ex.length+' exercise'+(d.ex.length===1?'':'s')+'</span></button>'+
   (o.start?'<button class="dstart" data-act="startDay" data-arg="'+o.start+'" aria-label="Start '+esc(dayTitle(d,di))+'">'+(o.done?I.check:I.play)+(o.done?'Again':'Start')+'</button>':'')+
   '<button class="xarrow" data-act="'+act+'" data-arg="'+di+'" aria-label="'+(open?'Collapse':'Open')+'">'+(open?I.chevu:I.chevd)+'</button></div>'+
-  (open?'<div class="dcard-b">'+d.ex.map(function(e){return '<div style="display:flex;justify-content:space-between;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)"><span style="font-weight:600">'+esc(e.ex)+'</span><span class="muted" style="white-space:nowrap">'+e.sets+' × '+esc(e.reps)+(e.rest?' · '+esc(fmtRest(e.rest)):'')+'</span></div>'}).join('')+'<div class="dcard-f"><button class="xarrow" data-act="'+act+'" data-arg="'+di+'" aria-label="Collapse">'+I.chevu+'</button></div></div>':'')+'</div>'}
+  (open?'<div class="dcard-b">'+(o.log?'<div class="muted" style="font-size:12px;padding-top:12px">Your lifts · '+esc(new Date(o.log.ts).toLocaleDateString('en-IN',{day:'numeric',month:'short'}))+'</div>':'')+d.ex.map(function(e){
+    var le=o.log&&o.log.ex.filter(function(x){return x.n===e.ex})[0];
+    return '<div style="padding:12px 0;border-bottom:1px solid var(--line)"><div style="display:flex;justify-content:space-between;gap:10px"><span style="font-weight:600">'+esc(e.ex)+'</span><span class="muted" style="white-space:nowrap">'+e.sets+' × '+esc(e.reps)+(e.rest?' · '+esc(fmtRest(e.rest)):'')+'</span></div>'+
+    (o.log?(le?'<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">'+le.sets.map(function(st,i){return '<span class="chip" style="background:rgba(255,255,255,.75);color:var(--ink);font-weight:600">Set '+(i+1)+': '+(st.kg?(+st.kg)+' kg':'Bodyweight')+' × '+st.reps+'</span>'}).join('')+'</div>':'<div class="muted" style="font-size:12.5px;margin-top:6px">Not done</div>'):'')+'</div>'}).join('')+'<div class="dcard-f"><button class="xarrow" data-act="'+act+'" data-arg="'+di+'" aria-label="Collapse">'+I.chevu+'</button></div></div>':'')+'</div>'}
 function vProgEdit(){
   var pe=S.pe,wi=Math.min(pe.wk||0,pe.phases.length-1),ph=pe.phases[wi];pe.open=pe.open||{};
   var add='<button class="wktab" style="background:var(--card);border:1.5px dashed var(--line);color:var(--ink)" data-act="weekAdd" aria-label="Add a week">+ Add week</button>';
@@ -931,8 +934,9 @@ function myProg(u,nd){
   var p=progBy(u.program);if(!p)return '<div class="hero" style="margin-top:24px"><h2 style="font-size:18px;font-weight:700">No program yet</h2><p class="muted" style="margin-top:10px">Your trainer will assign one. Meanwhile you can log your own workout.</p></div>';var ph=pPhases(p),tw=pWeeks(p),n=tw||1,cur=nd&&nd.wk?nd.wk-1:0;
   S.pv=S.pv||{};if(S.pv.wk==null||S.pv.wk>=n)S.pv.wk=Math.min(cur,n-1);S.pv.open=S.pv.open||{};
   var w=S.pv.wk,days=phaseAt(p,w+1).ph.days||[];
+  var lg=function(d){var m=DB.logs.filter(function(l){return l.cid===u.id&&l.pid===p.id&&l.source==='program'&&l.name===d.name&&(!tw||(l.wk||1)===w+1)});return m.sort(function(a,b){return b.ts-a.ts})[0]||null};
   return '<div class="sec-title"><h2>My program</h2></div><div class="card" style="padding-bottom:16px"><b>'+esc(p.name)+'</b>'+(tw>1?weekTabs(n,w,'pvWk'):'')+
-   '<div style="margin-top:4px">'+days.map(function(d,di){return dayRO(d,di,!!S.pv.open[di],'pvDay',{start:(w+1)+'|'+di,done:DB.logs.some(function(l){return l.cid===u.id&&l.pid===p.id&&l.source==='program'&&l.name===d.name&&(!tw||(l.wk||1)===w+1)})})}).join('')+'</div></div>';
+   '<div style="margin-top:4px">'+days.map(function(d,di){return dayRO(d,di,!!S.pv.open[di],'pvDay',{start:(w+1)+'|'+di,done:!!lg(d),log:lg(d)})}).join('')+'</div></div>';
 }
 function vWorkoutTab(){
   var u=S.user,ls=logsOf(u.id),nd=nextDay(u),tp=tplsOf(u.id),wk=weekDays(),dr=DB.drafts[u.id];
