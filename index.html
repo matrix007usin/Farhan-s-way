@@ -592,7 +592,9 @@ var LIB=[
 ['Plank','Core'],['Crunch','Core'],['Russian Twist','Core'],['Hanging Leg Raise','Core'],['Mountain Climbers','Core'],
 ['Burpees','Cardio'],['Kettlebell Swing','Cardio'],['Treadmill Run','Cardio'],['Cycling','Cardio'],['Jump Rope','Cardio']
 ];
-function allEx(){return LIB.concat((DB&&DB.custom||[]).map(function(n){return [n,'Custom']}))}
+var EXGROUPS=['Chest','Back','Shoulders','Arms','Legs','Core','Cardio','Full body'];
+function myCx(){var p=(typeof S!=='undefined'&&S.user&&S.user.profile)||null;return (p&&p.cx||[]).filter(function(e){return e&&e[0]&&e[1]})}
+function allEx(){var seen={},out=[];LIB.concat(myCx(),(DB&&DB.custom||[]).map(function(n){return [n,'Custom']})).forEach(function(e){var k=e[0].toLowerCase();if(!seen[k]){seen[k]=1;out.push(e)}});return out}
 function groupOf(n){var f=allEx().filter(function(e){return e[0]===n})[0];return f?f[1]:'Custom'}
 
 /* ---------- demo data ---------- */
@@ -1141,7 +1143,12 @@ function drawSheet(){
   if(s.type==='confirm'){
     inner='<h2>'+esc(s.title)+'</h2><p class="body">'+esc(s.body)+'</p><div class="acts"><button class="btn ghost" data-act="closeSheet">'+esc(s.cancel||'Cancel')+'</button><button class="btn '+(s.danger?'danger':'')+'" data-act="'+s.act+'" data-arg="'+esc(s.arg||'')+'">'+esc(s.ok)+'</button></div>';
   } else if(s.type==='pick'){
-    inner='<h2>Add exercise</h2><div class="field" style="margin-top:18px">'+I.search+'<input id="pq" type="search" placeholder="Search exercises" data-live="pq" autocomplete="off" value="'+esc(s.q||'')+'"></div><div id="pickList">'+pickList(s.q||'')+'</div>';
+    inner='<div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><h2>Add exercise</h2><button class="btn sm soft" data-act="newEx" style="flex:none">+ New exercise</button></div><div class="field" style="margin-top:18px">'+I.search+'<input id="pq" type="search" placeholder="Search exercises" data-live="pq" autocomplete="off" value="'+esc(s.q||'')+'"></div><div id="pickList">'+pickList(s.q||'')+'</div>';
+  } else if(s.type==='newex'){
+    inner='<h2>New exercise</h2><p class="body" style="margin-bottom:4px">It is saved to your exercise list under the muscle group you pick, so your lifts for it are tracked from now on.</p>'+
+    '<label class="lbl" for="nxn" style="margin-top:16px">Exercise name</label><div class="field"><input id="nxn" maxlength="40" placeholder="e.g. Cable Wood Chop" autocomplete="off" value="'+esc(s.name||'')+'"></div>'+
+    '<label class="lbl" style="margin-top:18px">Muscle group</label><div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px">'+EXGROUPS.map(function(g){return '<button class="wktab'+(s.g===g?' on':'')+'" data-act="nxGrp" data-arg="'+g+'" aria-pressed="'+(s.g===g)+'">'+g+'</button>'}).join('')+'</div>'+
+    '<div class="acts"><button class="btn ghost" data-act="nxBack">Back</button><button class="btn" data-act="nxSave">'+(s.target?'Create and add':'Create')+'</button></div>';
   } else if(s.type==='preview'){
     var pp=progBy(s.pid),pph=pPhases(pp),ptw=pWeeks(pp),wn=0;
     inner='<h2>'+esc(pp.name)+'</h2><p class="body" style="margin-bottom:6px">'+progSummary(pp)+'</p>'+pph.map(function(x,i){var n=Math.max(1,+x.weeks||1),st=wn+1;wn+=n;
@@ -1289,7 +1296,18 @@ var A={
   doDemo:function(){DB=seed();save();closeSheet();toast('Demo data restored');render()},
   pick:function(a){openSheet({type:'pick',target:a,q:''});setTimeout(function(){var i=$('#pq');if(i)i.focus()},50)},
   pickDo:function(a){var t=S.sheet.target;addExercise(t,a,groupOf(a));closeSheet();render()},
-  pickCustom:function(a){var n=a.replace(/\b\w/g,function(c){return c.toUpperCase()});if(DB.custom.indexOf(n)<0)DB.custom.push(n);save();addExercise(S.sheet.target,n,'Custom');closeSheet();render()},
+  pickCustom:function(a){A.newEx(a)},
+  newEx:function(a){var q=(typeof a==='string'&&a)||($('#pq')&&$('#pq').value)||'';openSheet({type:'newex',target:S.sheet&&S.sheet.target,name:q.trim().replace(/\b\w/g,function(c){return c.toUpperCase()}),g:'',q:q});setTimeout(function(){var i=$('#nxn');if(i&&!i.value)i.focus()},60)},
+  nxGrp:function(a){var i=$('#nxn');if(i)S.sheet.name=i.value;S.sheet.g=a;drawSheet()},
+  nxBack:function(){var s=S.sheet;openSheet({type:'pick',target:s.target,q:s.q||''});setTimeout(function(){var i=$('#pq');if(i)i.focus()},50)},
+  nxSave:function(){var s=S.sheet,i=$('#nxn'),n=((i&&i.value)||'').trim().replace(/\s+/g,' ');
+    if(n.length<2){toast('Type the exercise name');return}
+    if(!s.g){toast('Choose a muscle group');return}
+    var ex=allEx().filter(function(e){return e[0].toLowerCase()===n.toLowerCase()})[0],g=s.g;
+    if(ex){n=ex[0];g=ex[1];toast(n+' is already in the list under '+g)}
+    else{var p=S.user.profile=S.user.profile||{};p.cx=(p.cx||[]).concat([[n,g]]);save();toast(n+' added to '+g)}
+    if(s.target)addExercise(s.target,n,g);
+    closeSheet();render()},
   exDel:function(a){var p=a.split('|');getPath(S,p[0]).splice(+p[1],1);render()},
   newTpl:function(){S.te={isNew:true,id:uid(),name:'',ex:[]};S.sub={n:'tpl'};render()},
   editTpl:function(a){S.te=Object.assign({isNew:false},clone(DB.templates.filter(function(t){return t.id===a})[0]));S.sub={n:'tpl'};render()},
