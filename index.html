@@ -431,6 +431,16 @@
     background:var(--surface);width:100%;max-width:480px;border-radius:28px 28px 0 0;max-height:88vh;overflow:auto;
     padding:16px max(24px,env(safe-area-inset-right,0px)) calc(28px + env(safe-area-inset-bottom,0px)) max(24px,env(safe-area-inset-left,0px));
   }
+  .ov.full{align-items:stretch}.ov.full .sheetbox{max-width:480px;max-height:none;height:100%;border-radius:0;padding-top:max(14px,env(safe-area-inset-top,0px))}
+  .ov.full .grab{display:none}
+  .xh-top{display:flex;align-items:center;gap:12px}.xh-top h2{font-size:20px;line-height:1.2}
+  .xh-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px}
+  .xh-tiles div{background:var(--soft);border-radius:16px;padding:12px 10px;text-align:center}.xh-tiles b{display:block;font-size:17px}.xh-tiles span{font-size:11.5px;color:var(--muted)}
+  .xh-s{padding:14px 0;border-bottom:1px solid var(--line)}.xh-s:last-child{border-bottom:0}
+  .xh-s .d{display:flex;justify-content:space-between;gap:10px;font-weight:700;font-size:14px}.xh-s .d span{font-weight:500;color:var(--muted);font-size:12.5px;text-align:right}
+  .xh-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.xh-chips i{font-style:normal;font-weight:600;font-size:12.5px;background:var(--soft);border-radius:99px;padding:5px 11px}
+  .xh-chips i.top{background:var(--orange-t);color:var(--orange-i)}
+  .exlink{border:0;background:none;padding:0;margin:0;font:inherit;font-weight:700;color:inherit;text-align:left;text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:4px;cursor:pointer}
   .grab{width:44px;height:5px;border-radius:99px;background:var(--line);margin:0 auto 20px}
   .sheetbox h2{font-size:18px;font-weight:700}
   .sheetbox .body{margin-top:10px;color:var(--muted);font-size:13.5px}
@@ -767,7 +777,7 @@ function logBlock(l,showWho){
   var who=showWho?userBy(l.cid):null;
   var ex=l.ex.map(function(e){
     var ds=e.sets.filter(function(s){return s.done!==false});
-    return '<div class="logex"><b>'+esc(e.n)+'</b><div class="s">'+ds.map(function(s,i){return '<span>Set '+(i+1)+'</span><span>'+kg(+s.kg||0)+' kg × '+(s.reps||0)+(s.rest?' · rest '+s.rest+'s':'')+'</span>'}).join('')+'</div></div>';
+    return '<div class="logex"><b>'+exLink(e.n)+'</b><div class="s">'+ds.map(function(s,i){return '<span>Set '+(i+1)+'</span><span>'+kg(+s.kg||0)+' kg × '+(s.reps||0)+(s.rest?' · rest '+s.rest+'s':'')+'</span>'}).join('')+'</div></div>';
   }).join('');
   return '<details class="log"><summary><div class="grow" style="flex:1;min-width:0"><div class="nm" style="font-weight:700">'+esc(l.name)+(who?' <span class="muted" style="font-weight:600">· '+esc(who.name)+'</span>':'')+'</div><div class="sb muted" style="font-size:12.5px">'+fmtDay(l.date)+' · '+setCount(l)+' sets · '+nf(volume(l))+' kg</div></div><span class="chip">'+l.dur+' min</span></summary><div class="logbody">'+ex+(l.note?'<div class="nt">'+esc(l.note)+'</div>':'')+'</div></details>';
 }
@@ -886,7 +896,7 @@ function exEditor(path,items){
   if(!items.length)return '<p class="muted" style="font-size:12.5px;padding:12px 0">No exercises yet.</p>';
   return items.map(function(e,i){
     var b=path+'.'+i;
-    return '<div class="erow" data-rord="'+path+'"><div class="en"><b>'+esc(e.ex)+'</b><span>'+esc(e.g||'')+'</span></div><button class="icon" data-act="exDel" data-arg="'+path+'|'+i+'" aria-label="Remove exercise">'+I.x+'</button>'+
+    return '<div class="erow" data-rord="'+path+'"><div class="en"><b>'+exLink(e.ex)+'</b><span>'+esc(e.g||'')+'</span></div><button class="icon" data-act="exDel" data-arg="'+path+'|'+i+'" aria-label="Remove exercise">'+I.x+'</button>'+
     '<div class="ens3"><label><span>Sets</span><input class="num" inputmode="numeric" data-b="'+b+'.sets" data-n="i" value="'+esc(e.sets)+'" aria-label="Sets"></label><label><span>Reps</span><input class="num" data-b="'+b+'.reps" value="'+esc(e.reps)+'" placeholder="9-12" aria-label="Reps"></label><label><span>Rest</span><input class="num" data-b="'+b+'.rest" value="'+esc(e.rest||'')+'" placeholder="60" aria-label="Rest between sets"></label></div></div>'}).join('')+
     (items.length>1&&(path==='te.ex'||/phases\.0\.days\.0\.ex$/.test(path))?'<p class="hint" style="text-align:left;margin-top:14px">Hold an exercise, then slide up or down to reorder.<br>Rest is in seconds, or type "1 min". For a range like 60-90, the timer starts at the first number.</p>':'');
 }
@@ -901,7 +911,7 @@ function dayRO(d,di,open,act,o){
   '<button class="xarrow" data-act="'+act+'" data-arg="'+di+'" aria-label="'+(open?'Collapse':'Open')+'">'+(open?I.chevu:I.chevd)+'</button></div>'+
   (open?'<div class="dcard-b">'+(o.log?'<div class="muted" style="font-size:12px;padding-top:12px">Your lifts · '+esc(new Date(o.log.ts).toLocaleDateString('en-IN',{day:'numeric',month:'short'}))+'</div>':'')+d.ex.map(function(e){
     var le=o.log&&o.log.ex.filter(function(x){return x.n===e.ex})[0];
-    return '<div style="padding:12px 0;border-bottom:1px solid var(--line)"><div style="display:flex;justify-content:space-between;gap:10px"><span style="font-weight:600">'+esc(e.ex)+'</span><span class="muted" style="white-space:nowrap">'+e.sets+' × '+esc(e.reps)+(e.rest?' · '+esc(fmtRest(e.rest)):'')+'</span></div>'+
+    return '<div style="padding:12px 0;border-bottom:1px solid var(--line)"><div style="display:flex;justify-content:space-between;gap:10px"><span style="font-weight:600">'+exLink(e.ex)+'</span><span class="muted" style="white-space:nowrap">'+e.sets+' × '+esc(e.reps)+(e.rest?' · '+esc(fmtRest(e.rest)):'')+'</span></div>'+
     (o.log?(le?'<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">'+le.sets.map(function(st,i){return '<span class="chip" style="background:rgba(255,255,255,.75);color:var(--ink);font-weight:600">Set '+(i+1)+': '+(st.kg?(+st.kg)+' kg':'Bodyweight')+' × '+st.reps+'</span>'}).join('')+'</div>':'<div class="muted" style="font-size:12.5px;margin-top:6px">Not done</div>'):'')+'</div>'}).join('')+'<div class="dcard-f"><button class="xarrow" data-act="'+act+'" data-arg="'+di+'" aria-label="Collapse">'+I.chevu+'</button></div></div>':'')+'</div>'}
 function vProgEdit(){
   var pe=S.pe,wi=Math.min(pe.wk||0,pe.phases.length-1),ph=pe.phases[wi];pe.open=pe.open||{};
@@ -952,6 +962,55 @@ function vWorkoutTab(){
   '<div class="sec-title"><h2>Missed a day?</h2></div><div class="card"><p class="muted" style="font-size:13px">Worked out but could not log it? Add it for the day it happened.</p><button class="btn ghost block" style="margin-top:18px" data-act="pastOpen">'+I.plus+'Log a past workout</button></div>';
 }
 
+/* ---------- exercise history: every time this exercise was done, plus a progress line ---------- */
+function xf(v){return String(Math.round(v*10)/10)}
+function exLink(name){return S.user&&S.user.role!=='admin'?'<button class="exlink" data-act="exHist" data-arg="'+esc(name)+'" aria-label="Open history of '+esc(name)+'">'+esc(name)+'</button>':esc(name)}
+function exSessions(cid,name){
+  var out=[];logsOf(cid).forEach(function(l){l.ex.forEach(function(e){if(e.n!==name)return;
+    var ds=e.sets.filter(function(x){return x.done!==false&&(+x.kg>0||+x.reps>0)});if(!ds.length)return;
+    var top=0,vol=0,br=0;ds.forEach(function(x){top=Math.max(top,+x.kg||0);br=Math.max(br,+x.reps||0);vol+=(+x.kg||0)*(+x.reps||0)});
+    out.push({date:l.date,wn:l.name,sets:ds,top:top,vol:vol,reps:br})})});
+  return out.sort(function(a,b){return a.date<b.date?-1:a.date>b.date?1:0});
+}
+function exDay(k){var p=k.split('-').map(Number),d=new Date(p[0],p[1]-1,p[2]);return d.toLocaleDateString('en-IN',{day:'numeric',month:'short'})+(p[0]!==new Date().getFullYear()?' '+p[0]:'')}
+var EXM={top:['Top weight','kg'],vol:['Volume','kg'],reps:['Best reps','reps']};
+function exChart(ss,m,sel){
+  var W=340,H=210,pl=14,pr=46,pt=18,pb=34,pw=W-pl-pr,ph=H-pt-pb,n=ss.length,vals=ss.map(function(x){return x[m]});
+  var lo=Math.min.apply(null,vals),hi=Math.max.apply(null,vals);if(hi===lo){lo=Math.max(0,lo-1);hi=hi+1}
+  var pad=(hi-lo)*.15;lo=Math.max(0,Math.floor(lo-pad));hi=Math.ceil(hi+pad);var stp=Math.ceil((hi-lo)/3);hi=lo+stp*3;
+  var X=function(i){return n===1?pl+pw/2:pl+pw*i/(n-1)},Y=function(v){return pt+ph*(1-(v-lo)/(hi-lo))};
+  var fm=function(v){return xf(Math.round(v*10)/10)};
+  var g='',i;for(i=0;i<=3;i++){var gy=(pt+ph*i/3).toFixed(1);g+='<line class="gl" x1="'+pl+'" y1="'+gy+'" x2="'+(pl+pw)+'" y2="'+gy+'"/><text x="'+(pl+pw+8)+'" y="'+(+gy+3.5)+'">'+fm(hi-(hi-lo)*i/3)+'</text>'}
+  var path=vals.map(function(v,j){return (j?'L':'M')+X(j).toFixed(1)+' '+Y(v).toFixed(1)}).join(' ');
+  var area=n>1?'<path d="'+path+' L'+X(n-1).toFixed(1)+' '+(pt+ph)+' L'+X(0).toFixed(1)+' '+(pt+ph)+' Z" fill="url(#xgrad)"/><path class="ln" d="'+path+'"/>':'';
+  var dots='',hits='';vals.forEach(function(v,j){var on=j===sel;dots+=(on?'<circle cx="'+X(j).toFixed(1)+'" cy="'+Y(v).toFixed(1)+'" r="11" fill="var(--chart-soft)"/>':'')+'<circle class="pt" cx="'+X(j).toFixed(1)+'" cy="'+Y(v).toFixed(1)+'" r="'+(on?6:4.5)+'"/>';
+    hits+='<rect class="hit" x="'+(X(j)-Math.max(10,pw/Math.max(n,1)/2)).toFixed(1)+'" y="'+pt+'" width="'+(Math.max(20,pw/Math.max(n,1))).toFixed(1)+'" height="'+ph+'" data-act="exPt" data-arg="'+j+'" role="button" tabindex="0" aria-label="'+esc(exDay(ss[j].date)+': '+fm(v)+' '+EXM[m][1])+'"/>'});
+  var xl='<text x="'+pl+'" y="'+(pt+ph+22)+'">'+esc(exDay(ss[0].date))+'</text>'+(n>1?'<text x="'+(pl+pw)+'" y="'+(pt+ph+22)+'" text-anchor="end">'+esc(exDay(ss[n-1].date))+'</text>':'');
+  var tip='';if(sel!=null&&ss[sel]){var l1=exDay(ss[sel].date),l2=fm(vals[sel])+' '+EXM[m][1],px=X(sel),py=Y(vals[sel]),bw=Math.max(l1.length*5.8,l2.length*6.4)+22,bh=38,bx=Math.min(Math.max(px-bw/2,2),W-bw-2),by=py-bh-14;if(by<2)by=py+14;
+    tip='<g class="tip" pointer-events="none"><rect x="'+bx.toFixed(1)+'" y="'+by.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+bh+'" rx="10"/><text class="s" x="'+(bx+bw/2).toFixed(1)+'" y="'+(by+15).toFixed(1)+'" text-anchor="middle">'+esc(l1)+'</text><text x="'+(bx+bw/2).toFixed(1)+'" y="'+(by+30).toFixed(1)+'" text-anchor="middle">'+esc(l2)+'</text></g>'}
+  return '<svg class="lc" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Line chart of '+esc(EXM[m][0])+' over '+n+' sessions"><defs><linearGradient id="xgrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--chart);stop-opacity:.24"/><stop offset="1" style="stop-color:var(--chart);stop-opacity:0"/></linearGradient></defs>'+g+area+dots+xl+hits+tip+'</svg>';
+}
+function exChartBox(s){
+  var ss=exSessions(S.user.id,s.name),m=s.m,sel=s.sel==null?ss.length-1:s.sel;
+  var avail=['top','vol','reps'].filter(function(k){return ss.some(function(x){return x[k]>0})});
+  return '<div class="xh-chips" role="tablist" style="margin:0 0 4px">'+avail.map(function(k){return '<button class="wktab'+(k===m?' on':'')+'" style="height:34px;padding:0 14px;font-size:13px" data-act="exMet" data-arg="'+k+'" role="tab" aria-selected="'+(k===m)+'">'+EXM[k][0]+'</button>'}).join('')+'</div>'+
+    exChart(ss,m,sel)+
+    (ss.length<2?'<p class="muted" style="font-size:12.5px;text-align:center">The line appears after you do this exercise at least twice.</p>':'');
+}
+function exHistHtml(s){
+  var ss=exSessions(S.user.id,s.name),rev=ss.slice().reverse(),has=function(k){return ss.some(function(x){return x[k]>0})};
+  if(!s.m)s.m=has('top')?'top':has('reps')?'reps':'top';
+  var best=ss.reduce(function(a,x){return Math.max(a,x.top)},0),first=ss[0],last=ss[ss.length-1];
+  var head='<div class="xh-top"><button class="icon" data-act="closeSheet" aria-label="Close">'+I.back+'</button><div style="min-width:0"><h2>'+esc(s.name)+'</h2><div class="muted" style="font-size:12.5px;margin-top:2px">'+esc(groupOf(s.name))+' · history</div></div></div>';
+  if(!ss.length)return head+'<div class="card empty" style="margin-top:24px"><b>No history yet</b>Finish a workout with '+esc(s.name)+' and every set you lifted will show up here.</div>';
+  var chg=last.top-first.top;
+  var tiles='<div class="xh-tiles"><div><b>'+ss.length+'</b><span>Session'+(ss.length===1?'':'s')+'</span></div><div><b>'+(best?xf(best)+' kg':'—')+'</b><span>Best weight</span></div><div><b>'+(ss.length>1&&best?(chg>0?'+':chg<0?'−':'')+xf(Math.abs(Math.round(chg*10)/10))+' kg':'—')+'</b><span>Since first</span></div></div>';
+  var list='<div class="sec-title" style="margin-top:26px"><h2>Every time you did it</h2></div><div class="card pad0" style="padding:0 18px">'+rev.map(function(x){
+    var tt=0;x.sets.forEach(function(st){if(+st.kg>tt)tt=+st.kg});
+    return '<div class="xh-s"><div class="d"><b>'+esc(exDay(x.date))+'</b><span>'+esc(x.wn||'')+'</span></div><div class="xh-chips">'+x.sets.map(function(st,i){return '<i'+(tt>0&&+st.kg===tt?' class="top"':'')+'>'+(+st.kg>0?xf(+st.kg)+' kg':'Bodyweight')+' × '+(+st.reps||0)+'</i>'}).join('')+'</div></div>'}).join('')+'</div>';
+  var chart='<div class="sec-title" style="margin-top:26px"><h2>Progress</h2></div><div class="chartcard" style="margin-top:8px"><div id="exChart">'+exChartBox(s)+'</div></div>';
+  return head+tiles+list+chart;
+}
 function vWorkout(){
   var d=S.dr,u=S.user;d.open=d.open||{};
   return '<div class="wk-head"><button class="icon" data-act="askLeave" aria-label="Leave workout">'+I.back+'</button><div class="t"><h1>'+esc(d.name)+'</h1><div class="el">'+(isPast(d)?'Past workout':'Elapsed <span id="elapsed">'+mmss((Date.now()-d.startedAt)/1000)+'</span><span id="wlock">'+(WL.s?' · Screen stays on':'')+'</span>')+'</div></div><button class="btn sm" data-act="finish">Finish</button></div>'+
@@ -959,7 +1018,7 @@ function vWorkout(){
   (d.ex.length>1?'<p class="hint" style="margin:16px 2px 0;text-align:left">Tap an arrow to open an exercise. Hold a name, then slide to reorder.</p>':'')+
   d.ex.map(function(e,ei){
     var pv=prevSets(u.id,e.ex),rs=restOfEx(e),op=!!d.open[e.ex],nd=e.sets.filter(function(x){return x.done}).length,tot=e.sets.length,fin=tot>0&&nd===tot;
-    return '<div class="card exc'+(op?' open':'')+(fin?' fin':'')+'" data-rord="dr.ex"><div class="exc-h"><div style="min-width:0"><b>'+esc(e.ex)+'</b><div class="sb">'+esc(e.g||'')+(e.tgt?' · Target '+esc(e.tgt):'')+'</div></div><div class="exc-r">'+
+    return '<div class="card exc'+(op?' open':'')+(fin?' fin':'')+'" data-rord="dr.ex"><div class="exc-h"><div style="min-width:0"><b>'+exLink(e.ex)+'</b><div class="sb">'+esc(e.g||'')+(e.tgt?' · Target '+esc(e.tgt):'')+'</div></div><div class="exc-r">'+
       (op?'<button class="rchip" data-act="restEdit" data-arg="'+ei+'" aria-label="Rest timer for this exercise">'+I.clock+(rs?mmss(rs):'Off')+'</button>':'<span class="xprog">'+(fin?I.check:'')+nd+'/'+tot+'</span>')+
       '<button class="xarrow" data-act="exToggle" data-arg="'+ei+'" aria-expanded="'+(op?'true':'false')+'" aria-label="'+(op?'Collapse ':'Open ')+esc(e.ex)+'">'+(op?I.chevu:I.chevd)+'</button></div></div>'+
     (op?
@@ -1149,6 +1208,8 @@ function drawSheet(){
     '<label class="lbl" for="nxn" style="margin-top:16px">Exercise name</label><div class="field"><input id="nxn" maxlength="40" placeholder="e.g. Cable Wood Chop" autocomplete="off" value="'+esc(s.name||'')+'"></div>'+
     '<label class="lbl" style="margin-top:18px">Muscle group</label><div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px">'+EXGROUPS.map(function(g){return '<button class="wktab'+(s.g===g?' on':'')+'" data-act="nxGrp" data-arg="'+g+'" aria-pressed="'+(s.g===g)+'">'+g+'</button>'}).join('')+'</div>'+
     '<div class="acts"><button class="btn ghost" data-act="nxBack">Back</button><button class="btn" data-act="nxSave">'+(s.target?'Create and add':'Create')+'</button></div>';
+  } else if(s.type==='exhist'){
+    inner=exHistHtml(s);
   } else if(s.type==='preview'){
     var pp=progBy(s.pid),pph=pPhases(pp),ptw=pWeeks(pp),wn=0;
     inner='<h2>'+esc(pp.name)+'</h2><p class="body" style="margin-bottom:6px">'+progSummary(pp)+'</p>'+pph.map(function(x,i){var n=Math.max(1,+x.weeks||1),st=wn+1;wn+=n;
@@ -1197,7 +1258,7 @@ function drawSheet(){
     (d.source!=='template'&&d.ex.length?'<button class="chk'+(s.tpl?' on':'')+'" style="margin-top:22px" data-act="saveAsTpl"><span class="box">'+I.check+'</span><span style="flex:1;font-weight:600">Also save this as my template</span></button>':'')+
     '<div class="acts"><button class="btn ghost" data-act="closeSheet">Keep going</button><button class="btn" data-act="finishGo">Save workout</button></div>';
   }
-  box.innerHTML='<div class="ov" data-act="ovClose"><div class="sheetbox" role="dialog" aria-modal="true"><div class="grab"></div>'+inner+'</div></div>';
+  box.innerHTML='<div class="ov'+(s.type==='exhist'?' full':'')+'" data-act="ovClose"><div class="sheetbox" role="dialog" aria-modal="true"><div class="grab"></div>'+inner+'</div></div>';
 }
 function pickList(q){
   q=q.toLowerCase().trim();var all=allEx().filter(function(e){return !q||e[0].toLowerCase().indexOf(q)>=0||e[1].toLowerCase().indexOf(q)>=0});
@@ -1298,6 +1359,9 @@ var A={
   pickDo:function(a){var t=S.sheet.target;addExercise(t,a,groupOf(a));closeSheet();render()},
   pickCustom:function(a){A.newEx(a)},
   newEx:function(a){var q=(typeof a==='string'&&a)||($('#pq')&&$('#pq').value)||'';openSheet({type:'newex',target:S.sheet&&S.sheet.target,name:q.trim().replace(/\b\w/g,function(c){return c.toUpperCase()}),g:'',q:q});setTimeout(function(){var i=$('#nxn');if(i&&!i.value)i.focus()},60)},
+  exHist:function(a){openSheet({type:'exhist',name:a,m:null,sel:null})},
+  exMet:function(a){S.sheet.m=a;S.sheet.sel=null;var b=$('#exChart');if(b)b.innerHTML=exChartBox(S.sheet)},
+  exPt:function(a){S.sheet.sel=+a;var b=$('#exChart');if(b)b.innerHTML=exChartBox(S.sheet)},
   nxGrp:function(a){var i=$('#nxn');if(i)S.sheet.name=i.value;S.sheet.g=a;drawSheet()},
   nxBack:function(){var s=S.sheet;openSheet({type:'pick',target:s.target,q:s.q||''});setTimeout(function(){var i=$('#pq');if(i)i.focus()},50)},
   nxSave:function(){var s=S.sheet,i=$('#nxn'),n=((i&&i.value)||'').trim().replace(/\s+/g,' ');
